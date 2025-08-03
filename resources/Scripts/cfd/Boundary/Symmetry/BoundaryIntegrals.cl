@@ -44,35 +44,33 @@
  * @param umirrored Mirrored velocity of the particle, \a u if \a imirrored is
  * false (0).
  * @param rho Density \f$ \rho \f$.
+ * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param mass Mass \f$ m \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
  * @param grad_p Pressure gradient \f$ \nabla p \f$.
  * @param div_u Velocity divergence \f$ \nabla \cdot \mathbf{u} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global int* imirrored,
-                    const __global vec* r,
-                    const __global vec* rmirrored,
-                    const __global vec* normal,
-                    const __global vec* nmirrored,
-                    const __global vec* u,
-                    const __global vec* umirrored,
-                    const __global float* rho,
-                    const __global float* m,
-                    const __global float* p,
-                    __constant float* refd,
-                    __global vec* grad_p,
-                    __global float* div_u,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global int* restrict imirrored,
+                    const __global vec* restrict r,
+                    const __global vec* restrict rmirrored,
+                    const __global vec* restrict normal,
+                    const __global vec* restrict nmirrored,
+                    const __global vec* restrict u,
+                    const __global vec* restrict umirrored,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global float* restrict p,
+                    const __global svec2* restrict jhoc,
+                    __constant float* restrict refd,
+                    __global vec* restrict grad_p,
+                    __global float* restrict div_u,
                     usize N,
-                    vec g,
-                    LINKLIST_LOCAL_PARAMS)
+                    vec g)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -100,25 +98,13 @@ __kernel void entry(const __global uint* iset,
         _DIVU_ = div_u[i];
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if((!imirrored[j]) || (imove[j] != -3)){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if((!imirrored[j]) || (imove[j] != -3))
             continue;
-        }
         const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
-
-        // const float rho_j = rho[j];
-        // if(rho_j <= 0.01f * refd_i){
-        //     j++;
-        //     continue;
-        // }
 
         {
             const vec_xyz n_j = nmirrored[j].XYZ;  // Assumed outwarding oriented
@@ -130,7 +116,7 @@ __kernel void entry(const __global uint* iset,
             _GRADP_ += (p_i + p_j) / rho_i * w_ij * n_j;
             _DIVU_ += rho_i * dot(du, n_j) * w_ij;
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;

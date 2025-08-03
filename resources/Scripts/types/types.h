@@ -112,8 +112,8 @@
  * @note The number of particles, N, is not included
  */
 #define LINKLIST_LOCAL_PARAMS                                                  \
-    const __global usize * icell,                                              \
-    const __global svec2 * ihoc,                                               \
+    const __global usize* restrict icell,                                      \
+    const __global svec2* restrict ihoc,                                       \
     svec4 n_cells
 
 /** @brief Macro to easily add the parameters to run #BEGIN_NEIGHS macro,
@@ -124,9 +124,9 @@
  * @note The number of particles, N, is not included
  */
 #define LINKLIST_REMOTE_PARAMS                                                 \
-    const __global usize * icell,                                              \
-    const __global usize * mpi_icell,                                          \
-    const __global svec2 * mpi_ihoc,                                           \
+    const __global usize* restrict icell,                                      \
+    const __global usize* restrict mpi_icell,                                  \
+    const __global svec2* restrict mpi_ihoc,                                   \
     svec4 n_cells
 
 /** @brief Loop over the particle-by-particle neighbour chains

@@ -49,20 +49,18 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r,
-                    const __global vec* u,
-                    const __global float* rho,
-                    const __global float* m,
-                    __global vec* lap_u,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+__kernel void entry(const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global vec* restrict u,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                    __global vec* restrict lap_u,
+                    usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -86,25 +84,17 @@ __kernel void entry(const __global int* imove,
         _LAPU_ = lap_u[i].XYZ;
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+    FOR_NEIGHS(N, jhoc){
         const int imove_j = imove[j];
-        if((imove_j != 1) && (imove_j != -1)){
-            j++;
+        if((imove_j != 1) && (imove_j != -1))
             continue;
-        }
         // Don't take into account the fluid-fluid interactions
-        if(imove_i == imove_j){
-            j++;
+        if(imove_i == imove_j)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
         {
             const float rho_j = rho[j];
             const float udr = dot(u[j].XYZ - u_i, r_ij);
@@ -119,7 +109,7 @@ __kernel void entry(const __global int* imove,
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_u[i].XYZ = _LAPU_;

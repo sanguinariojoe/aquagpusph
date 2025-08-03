@@ -52,15 +52,15 @@
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global float* rho,
-                    const __global vec* grad_p,
-                    const __global vec* lap_u,
-                    const __global float* div_u,
-                    __global vec* dudt,
-                    __global float* drhodt,
-                    __constant float* visc_dyn,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global float* restrict rho,
+                    const __global vec* restrict grad_p,
+                    const __global vec* restrict lap_u,
+                    const __global float* restrict div_u,
+                    __global vec* restrict dudt,
+                    __global float* restrict drhodt,
+                    __constant float* restrict visc_dyn,
                     usize N,
                     vec g)
 {

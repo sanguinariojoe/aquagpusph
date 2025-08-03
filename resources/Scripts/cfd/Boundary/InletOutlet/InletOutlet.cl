@@ -68,16 +68,16 @@
  * @param io_rFS The point where the pressure is the reference one
  * (\f$ p_0 \f$).
  */
-__kernel void characteristics(const __global int* imove,
-                              const __global unsigned int* iset,
-                              const __global vec* r,
-                              const __global vec* u,
-                              const __global float* rho,
-                              const __global float* p,
-                              __global float* j1,
-                              __global float* j2,
-                              __global float* j3,
-                              const __constant float* refd,
+__kernel void characteristics(const __global int* restrict imove,
+                              const __global unsigned int* restrict iset,
+                              const __global vec* restrict r,
+                              const __global vec* restrict u,
+                              const __global float* restrict rho,
+                              const __global float* restrict p,
+                              __global float* restrict j1,
+                              __global float* restrict j2,
+                              __global float* restrict j3,
+                              const __constant float* restrict refd,
                               usize N,
                               usize nbuffer,
                               float dt,
@@ -121,30 +121,28 @@ __kernel void characteristics(const __global int* imove,
  * @param r Position \f$ \mathbf{r} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param j1 First characteristic \f$ J_1 \f$.
  * @param j2 Second characteristic \f$ J_2 \f$.
  * @param j3 Third characteristic \f$ J_3 \f$.
  * @param shepard Shepard renormalization factor \f$ \gamma \f$.
  * @param io_r Lower corner of the inlet/outlet square.
  * @param io_n = Velocity direction.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  */
-__kernel void extrapolate(const __global int* imove,
-                          const __global vec* r,
-                          const __global float* rho,
-                          const __global float* m,
-                          __global float* j1,
-                          __global float* j2,
-                          __global float* j3,
-                          __global float* shepard,
-                          const __constant float* refd,
+__kernel void extrapolate(const __global int* restrict imove,
+                          const __global vec* restrict r,
+                          const __global float* restrict rho,
+                          const __global float* restrict m,
+                          const __global svec2* restrict jhoc,
+                          __global float* restrict j1,
+                          __global float* restrict j2,
+                          __global float* restrict j3,
+                          __global float* restrict shepard,
+                          const __constant float* restrict refd,
                           usize N,
                           vec io_r,
-                          vec io_n,
-                          LINKLIST_LOCAL_PARAMS)
+                          vec io_n)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -180,15 +178,11 @@ __kernel void extrapolate(const __global int* imove,
     _J3_ = 0.f;
     _S_ = 0.f;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != 1){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != 1)
             continue;
-        }
         if(dot(r[j] - io_r, INWARD_NORMAL_SIGN * io_n) <= 0.f) {
             // Do not use other inlet/outlet particles to interpolate
-            j++;
             continue;            
         }
             
@@ -196,7 +190,6 @@ __kernel void extrapolate(const __global int* imove,
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
         {
-            j++;
             continue;
         }
         {
@@ -207,7 +200,7 @@ __kernel void extrapolate(const __global int* imove,
             _J2_ += j2[j] * w_ij;
             _J3_ += j3[j] * w_ij;
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     const float div = _S_ > J_SHEPARD_LIMIT ? 1.f / _S_ : 1.f;
     j1[i] = _J1_ * div;
@@ -244,16 +237,16 @@ __kernel void extrapolate(const __global int* imove,
  * @param io_rFS The point where the pressure is the reference one
  * (\f$ p_0 \f$).
  */
-__kernel void values(const __global int* imove,
-                     const __global unsigned int* iset,
-                     const __global vec* r,
-                     __global vec* u,
-                     __global float* rho,
-                     __global float* p,
-                     const __global float* j1,
-                     const __global float* j2,
-                     const __global float* j3,
-                     const __constant float* refd,
+__kernel void values(const __global int* restrict imove,
+                     const __global unsigned int* restrict iset,
+                     const __global vec* restrict r,
+                     __global vec* restrict u,
+                     __global float* restrict rho,
+                     __global float* restrict p,
+                     const __global float* restrict j1,
+                     const __global float* restrict j2,
+                     const __global float* restrict j3,
+                     const __constant float* restrict refd,
                      usize N,
                      float dt,
                      float cs,

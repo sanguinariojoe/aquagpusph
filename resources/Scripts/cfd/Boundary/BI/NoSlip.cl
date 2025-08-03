@@ -51,27 +51,25 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Area of the boundary element \f$ s \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param noslip_iset Particles set of the boundary terms which friction should
  * be taken into account.
  * @param dr Distance between particles \f$ \Delta r \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    const __global vec* u,
-                    const __global float* rho,
-                    const __global float* m,
-                    __global vec* lap_u,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global vec* restrict u,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                    __global vec* restrict lap_u,
                     usize N,
                     uint noslip_iset,
-                    float dr,
-                    LINKLIST_LOCAL_PARAMS)
+                    float dr)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -93,19 +91,13 @@ __kernel void entry(const __global uint* iset,
         _LAPU_ = lap_u[i].XYZ;
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if((imove[j] != -3) || (iset[j] != noslip_iset)){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if((imove[j] != -3) || (iset[j] != noslip_iset))
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
@@ -125,7 +117,7 @@ __kernel void entry(const __global uint* iset,
                 _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
             #endif
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_u[i].XYZ = _LAPU_;

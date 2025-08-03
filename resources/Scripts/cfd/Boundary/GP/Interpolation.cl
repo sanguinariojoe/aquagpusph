@@ -55,19 +55,19 @@
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    const __global float* m,
-                    const __global float* rho,
-                    const __global float* p,
-                    const __global vec* u,
-                    __global float* gp_rho,
-                    __global float* gp_p,
-                    __global vec* gp_u,
-                    __global float* shepard,
+__kernel void entry(const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global float* restrict m,
+                    const __global float* restrict rho,
+                    const __global float* restrict p,
+                    const __global vec* restrict u,
+                    __global float* restrict gp_rho,
+                    __global float* restrict gp_p,
+                    __global vec* restrict gp_u,
+                    __global float* restrict shepard,
                     usize N,
-                    const __global usize *gp_icell,
+                    const __global usize* restrict gp_icell,
                     LINKLIST_LOCAL_PARAMS)
 {
     const usize i = get_global_id(0);

@@ -45,12 +45,12 @@
  * @param p0 Background pressure \f$ p_0 \f$.
  * @see Boundary/BI/Interpolation.cl
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global float* shepard,
-                    __global float* rho,
-                    __global float* p,
-                    __constant float* refd,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global float* restrict shepard,
+                    __global float* restrict rho,
+                    __global float* restrict p,
+                    __constant float* restrict refd,
                     usize N,
                     float cs,
                     float p0)

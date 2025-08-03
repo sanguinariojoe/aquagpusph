@@ -52,15 +52,15 @@
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void freeslip(const __global uint* iset,
-                       const __global int* imove,
-                       const __global float* shepard,
-                       const __global float* rho,
-                       const __global vec* lap_u,
-                       const __global vec* dudt,
-                       __global vec* grad_p,
-                       __constant float* visc_dyn,
-                       __constant float* refd,
+__kernel void freeslip(const __global uint* restrict iset,
+                       const __global int* restrict imove,
+                       const __global float* restrict shepard,
+                       const __global float* restrict rho,
+                       const __global vec* restrict lap_u,
+                       const __global vec* restrict dudt,
+                       __global vec* restrict grad_p,
+                       __constant float* restrict visc_dyn,
+                       __constant float* restrict refd,
                        usize N,
                        vec g)
 {

@@ -54,18 +54,16 @@
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param m Mass \f$ m \f$ or Area \f$ s \f$ (depending on @p imove).
  * @param rho Density \f$ \rho \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param N Number of particles.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
- * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    __global vec* r,
-                    const __global vec* normal,
-                    const __global float* m,
-                    const __global float* rho,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+__kernel void entry(const __global int* restrict imove,
+                    __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global float* restrict m,
+                    const __global float* restrict rho,
+                    const __global svec2* restrict jhoc,
+                    usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -76,19 +74,15 @@ __kernel void entry(const __global int* imove,
 
     const float Ri = 0.5f * pow(m[i] / rho[i], 1.f / DIMS);
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if (imove[j] != -3) {
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if (imove[j] != -3)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r[i].XYZ;
         const vec_xyz n_j = normal[j].XYZ;
         const float rn = dot(r_ij, n_j);
         if(fabs(rn) > Ri){
             // Either the particle is just OK, or it is too far away from the
             // boundary to consider it
-            j++;
             continue;
         }
 
@@ -101,10 +95,9 @@ __kernel void entry(const __global int* imove,
         const vec_xyz rt = r_ij - rn * n_j;
         if(dot(rt, rt) >= Rj * Rj){
             // The particle is passing too far from the boundary element
-            j++;
             continue;
         }
 
         r[i].XYZ += (rn - Ri) * n_j;
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 }

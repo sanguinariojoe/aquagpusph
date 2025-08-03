@@ -43,24 +43,22 @@
  * @param m Mass \f$ m \f$.
  * @param rho Density \f$ \rho \f$.
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param p Pressure \f$ p \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @see SensorsRenormalization.cl
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global vec* r,
-                    const __global float* m,
-                    const __global float* rho,
-                    const __global vec* grad_p,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global float* restrict m,
+                    const __global float* restrict rho,
+                    const __global vec* restrict grad_p,
+                    const __global svec2* restrict jhoc,
                     __global float* p,
                     __constant float* refd,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+                    usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -82,24 +80,18 @@ __kernel void entry(const __global uint* iset,
     #endif
     _P_ = 0.f;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != 1){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != 1)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
         {
             const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
             _P_ += (p[j] - dot(gradp_i, r_ij)) * w_ij;
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         p[i] = _P_;

@@ -32,9 +32,9 @@
  * one.
  * @param N Number of particles.
  */
-__kernel void entry(const __global usize *associations_in,
-                    __global usize *associations,
-                    const __global usize *id_sorted,
+__kernel void entry(const __global usize* restrict associations_in,
+                    __global usize* restrict associations,
+                    const __global usize* restrict id_sorted,
                     usize N)
 {
     usize i = get_global_id(0);

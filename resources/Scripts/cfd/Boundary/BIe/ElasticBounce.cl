@@ -53,23 +53,21 @@
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param m Area \f$ s \f$.
  * @param u_in Velocity \f$ \mathbf{u} \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
- * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r_in,
-                    const __global vec* normal,
-                    const __global float* m,
-                    const __global vec* u_in,
-                    __global vec* dudt,
+__kernel void entry(const __global int* restrict imove,
+                    const __global vec* restrict r_in,
+                    const __global vec* restrict normal,
+                    const __global float* restrict m,
+                    const __global vec* restrict u_in,
+                    const __global svec2* restrict jhoc,
+                    __global vec* restrict dudt,
                     usize N,
-                    float dt,
-                    LINKLIST_LOCAL_PARAMS)
+                    float dt)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -96,18 +94,14 @@ __kernel void entry(const __global int* imove,
     #endif
     _U_ = u_in[i].XYZ + 0.5f * dt * _DUDT_;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if (imove[j] != -3) {
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if (imove[j] != -3)
             continue;
-        }
         const vec_xyz r_ij = r_in[j].XYZ - r_i;
         const vec_xyz n_j = normal[j].XYZ;
         const float rn = dot(r_ij, n_j);
         if(rn < 0.f){
             // The particle is on the "wrong" side of the wall.
-            j++;
             continue;
         }
 #ifdef HAVE_3D
@@ -119,7 +113,6 @@ __kernel void entry(const __global int* imove,
         const vec_xyz rt = r_ij - rn * n_j;
         if(dot(rt, rt) >= R * R){
             // The particle is passing too far from the boundary element
-            j++;
             continue;
         }
 
@@ -127,7 +120,6 @@ __kernel void entry(const __global int* imove,
             const float drn = dt * dot(_U_, n_j);
             if(drn < 0.f){
                 // The particle is already running away from the boundary
-                j++;
                 continue;
             }
 
@@ -144,7 +136,7 @@ __kernel void entry(const __global int* imove,
                 _U_ = u_in[i].XYZ + 0.5f * dt * _DUDT_;
             }
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         dudt[i].XYZ = _DUDT_;
@@ -165,11 +157,11 @@ __kernel void entry(const __global int* imove,
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param N Number of particles.
  */
-__kernel void force_bound(const __global int* imove,
-                          const __global float* m,
-                          const __global vec* dudt_preelastic,
-                          const __global vec* dudt_elastic,
-                          __global vec* force_elastic,
+__kernel void force_bound(const __global int* restrict imove,
+                          const __global float* restrict m,
+                          const __global vec* restrict dudt_preelastic,
+                          const __global vec* restrict dudt_elastic,
+                          __global vec* restrict force_elastic,
                           usize N)
 {
     const usize i = get_global_id(0);

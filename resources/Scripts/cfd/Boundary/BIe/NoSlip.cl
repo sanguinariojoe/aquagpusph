@@ -38,26 +38,24 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Area of the boundary element \f$ s \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param noslip_iset Set of boundary elements that should be considered
  * @param dr Distance between particles \f$ \Delta r \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    const __global vec* u,
-                    const __global float* rho,
-                    const __global float* m,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global vec* restrict u,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
                     __global vec* lap_u,
                     usize N,
                     uint noslip_iset,
-                    float dr,
-                    LINKLIST_LOCAL_PARAMS)
+                    float dr)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -79,19 +77,13 @@ __kernel void entry(const __global uint* iset,
         _LAPU_ = lap_u[i].XYZ;
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if((imove[j] != -3) || (iset[j] != noslip_iset)){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if((imove[j] != -3) || (iset[j] != noslip_iset))
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
@@ -103,7 +95,7 @@ __kernel void entry(const __global uint* iset,
             const vec_xyz du_t = du - dot(du, n_j) * n_j;
             _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_u[i].XYZ = _LAPU_;
@@ -138,25 +130,23 @@ __kernel void entry(const __global uint* iset,
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param dr Distance between particles \f$ \Delta r \f$.
  */
-__kernel void force(const __global uint* iset,
-                    const __global int* imove,
-                    __global vec* force_visc,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    const __global vec* u,
-                    const __global float* rho,
-                    const __global float* m,
-                     __constant float* visc_dyn,
+__kernel void force(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    __global vec* restrict force_visc,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global vec* restrict u,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                     __constant float* restrict visc_dyn,
                     usize N,
-                    float dr,
-                    LINKLIST_LOCAL_PARAMS)
+                    float dr)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -179,19 +169,13 @@ __kernel void force(const __global uint* iset,
     #endif
     _F_ = VEC_ZERO.XYZ;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != 1){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != 1)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             const float rho_j = rho[j];
@@ -205,7 +189,7 @@ __kernel void force(const __global uint* iset,
     
             _F_ += 2.f * visc_dyn_j * m_j * w_ij / (rho_j * dr_n) * du_t;
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         force_visc[i].XYZ = _F_;
@@ -225,10 +209,10 @@ __kernel void force(const __global uint* iset,
  * \f$ \mathbf{r}_0 \f$.
  * @param N Number of particles.
  */
-__kernel void moment(const __global int* imove,
-                     const __global vec* r,
-                     const __global vec* force_visc,
-                     __global vec4* moment_visc,
+__kernel void moment(const __global int* restrict imove,
+                     const __global vec* restrict r,
+                     const __global vec* restrict force_visc,
+                     __global vec4* restrict moment_visc,
                      vec forces_r,
                      usize N)
 {
@@ -259,10 +243,10 @@ __kernel void moment(const __global int* imove,
  * @param forces_iset Particles set of interest.
  * @param N Number of particles.
  */
-__kernel void filter_force(const __global uint* iset,
-                           const __global int* imove,
-                           __global vec* force_visc,
-                           __global vec4* moment_visc,
+__kernel void filter_force(const __global uint* restrict iset,
+                           const __global int* restrict imove,
+                           __global vec* restrict force_visc,
+                           __global vec4* restrict moment_visc,
                            unsigned int forces_iset,
                            usize N)
 {

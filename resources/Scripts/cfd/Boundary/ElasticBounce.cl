@@ -64,25 +64,23 @@
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param dr Distance between particles \f$ \Delta r \f$.
  * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    __global vec* u,
-                    __global vec* dudt,
+__kernel void entry(const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global svec2* restrict jhoc,
+                    __global vec* restrict u,
+                    __global vec* restrict dudt,
                     usize N,
                     float dr,
-                    float dt,
-                    LINKLIST_LOCAL_PARAMS)
+                    float dt)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -96,24 +94,19 @@ __kernel void entry(const __global int* imove,
     vec_xyz u_i = u[i].XYZ;
     vec_xyz dudt_i = dudt[i].XYZ;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if((imove[j] != -2) && (imove[j] != -3)){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if((imove[j] != -2) && (imove[j] != -3))
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const vec_xyz n_j = normal[j].XYZ;
         const float r0 = dot(r_ij, n_j);
         if(r0 < 0.f){
             // The particle is in the "wrong" side of the wall.
-            j++;
             continue;
         }
         const vec_xyz rt = r_ij - r0 * n_j;
         if(dot(rt, rt) >= R * R){
             // The particle is passing too far from the boundary element
-            j++;
             continue;
         }
 
@@ -123,7 +116,6 @@ __kernel void entry(const __global int* imove,
             const float dist = dt * u_n + 0.5f * dt * dt * dudt_n;
             if(dist < 0.f){
                 // The particle is already running away from the boundary
-                j++;
                 continue;
             }
 
@@ -144,5 +136,5 @@ __kernel void entry(const __global int* imove,
                 dudt_i = dudt[i].XYZ;
             }
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 }

@@ -44,11 +44,11 @@
  * @param r_min Minimum position of a particle
  * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    const __global usize* associations,
-                    const __global vec* normal,
-                    __global vec* r,
-                    __global usize *gp_icell,
+__kernel void entry(const __global int* restrict imove,
+                    const __global usize* restrict associations,
+                    const __global vec* restrict normal,
+                    __global vec* restrict r,
+                    __global usize* restrict gp_icell,
                     usize N,
                     vec r_min,
                     uivec4 n_cells)

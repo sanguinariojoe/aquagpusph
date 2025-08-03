@@ -39,11 +39,11 @@
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @see Sensors.cl
  */
-__kernel void entry(const __global int* imove,
-                    const __global float* shepard,
-                    __global vec* u,
-                    __global float* rho,
-                    __global float* p,
+__kernel void entry(const __global int* restrict imove,
+                    const __global float* restrict shepard,
+                    __global vec* restrict u,
+                    __global float* restrict rho,
+                    __global float* restrict p,
                     usize N,
                     float dt,
                     vec g)
