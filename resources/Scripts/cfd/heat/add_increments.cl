@@ -39,9 +39,7 @@ add(const __global int* imove,
 		return;
 
 	if (imove[i] > 0) {
-		// eint[i] += dt * rhs_qdot[i];
 		deintdt[i] += rhs_qdot[i];
-		//printf("%f\t",deintdt[i]);
 	}
 }
 
