@@ -96,8 +96,6 @@ entry(const __global unsigned int* iset,
 	X_from_Y(ys + i, xs + i);
 
 	p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
-      //printf("%f\n",gamma[i]);
-      //printf("\n");
 	T[i] = eint[i] / cv[i];
 	lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i] / 298.0f);
 
