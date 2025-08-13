@@ -71,8 +71,6 @@ entry(const __global unsigned int* iset,
 		return;
 
 	T[i] = eint[i] / cv[i];
-
-	//printf("%g\t", T[i]);
 }
 
 /*
