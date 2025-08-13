@@ -19,21 +19,20 @@
 #ifndef _SPECIES_H2_INCLUDED_
 #define _SPECIES_H2_INCLUDED_
 
-#define PASTE(x,y) x ## _ ## y
-#define EVALUATE_AND_PASTE(x,y) PASTE(x,y)
+#define PASTE(x, y) x##_##y
+#define EVALUATE_AND_PASTE(x, y) PASTE(x, y)
 #define reduce_sum EVALUATE_AND_PASTE(reduce_sum, species_t)
 
 #define R_gas 8.31f
 #define CPS (species_t)(14200.f, 918.f, 1040.f, 2050.f)
 #define MIS (species_t)(0.002f, 0.032f, 0.028f, 0.018f)
 #define NUS (species_t)(-1.0f, -0.5f, 0.0f, 1.0f)
-#define HPLUS_MASS (species_t)(0.0f, 0.0f, 0.0f, -285.83e3f/0.018f)
+#define HPLUS_MASS (species_t)(0.0f, 0.0f, 0.0f, -285.83e3f / 0.018f)
 
 inline float
 molar_mass_mixture(const species_t y)
 {
 	const species_t Mis = MIS;
-	//return 1.0f / reduce_sum(y * MIS);
 	return reduce_sum(y * MIS);
 }
 
@@ -65,17 +64,11 @@ calc_gamma_cv(const __global species_t* ys,
 
 	float MMix, R_mix, cp_local, cv_local;
 
-	/*const float y_H2 = (*ys).H2;
-	const float y_O2 = (*ys).O2;
-	const float y_N2 = (*ys).N2;
-	const float y_H2O = (*ys).H2O;*/
-
 	MMix = molar_mass_mixture(*ys);
 	cp_local = calc_cp_mix(*ys);
 
 	R_mix = R_gas / MMix;
 
-	// cv_local = cp_local / (cp_local-R_mix);
 	cv_local = cp_local - R_mix;
 
 	*gamma = cp_local / cv_local;
@@ -96,8 +89,7 @@ calc_gamma_cp_cv(const __global species_t* ys,
 	cp_local = calc_cp_mix(*ys);
 
 	R_mix = R_gas / MMix;
-	//printf("%f\n", MMix);
-	// cv_local = cp_local / (cp_local-R_mix);
+
 	cv_local = cp_local - R_mix;
 
 	*gamma = cp_local / cv_local;
