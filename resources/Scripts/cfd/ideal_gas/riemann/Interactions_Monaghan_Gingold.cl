@@ -45,6 +45,7 @@
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
+ * @param div_pi Divergene of the stress tensor.
  * @param N Number of particles.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -178,7 +179,7 @@ entry(const __global unsigned int* iset,
 
 #ifdef LOCAL_MEM_SIZE
 	grad_p[i].XYZ = _GRADP_;
-	div_pi[i].XYZ = DIVPI_;
+	div_pi[i].XYZ = _DIVPI_;
 	work_density[i] = _W_DEN_;
 	div_u[i] = _DIVU_;
 #endif
