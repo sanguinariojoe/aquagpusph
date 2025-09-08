@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 
 <!-- cfd.xml
 This is the main preset to create CFD compressible simulations with a Riemann solver in SPH. 
@@ -13,10 +13,15 @@ Riemann problem can be studied in the book of Toro on Riemann solvers.
 -->
 
 <sphInput>
+    <Variables>
+        <Variable name="div_pi" type="vec*" length="N" />
+    </Variables>
     <Tools>
-       
-        <!-- Particles interactions -->
-        <Tool action="replace" name="cfd interactions" type="kernel" path="../../../Scripts/cfd/ideal_gas/riemann/Interactions_Monaghan_Gingold.cl"/>
 
+        <!-- Particles interactions -->
+        <Tool action="replace" name="cfd interactions" type="kernel"
+            path="../../../Scripts/cfd/ideal_gas/riemann/Interactions_Monaghan_Gingold.cl" />
+        <Tool action="insert" after="cfd rates ideal gas" type="kernel" name="rate div_pi"
+            path="../../../Scripts/cfd/ideal_gas/riemann/Rates_MG.cl" />
     </Tools>
 </sphInput>
