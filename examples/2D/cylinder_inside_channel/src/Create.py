@@ -51,10 +51,10 @@ Re = 100.0
 p0 = 3.0 * refd * U**2
 # Cylinder and Channel dimensions
 D = 1.0
-L = 12.0 * D
+L = 8.0 * D
 H = 5.0 * D
 # Position of the cylinder
-x_cyl = 4.0 * D
+x_cyl = 2.0 * D
 y_cyl = 0.0 * D
 # Number of fluid particles in y direction
 ny = 150
