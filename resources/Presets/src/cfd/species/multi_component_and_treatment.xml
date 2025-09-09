@@ -13,7 +13,7 @@ See for instance cfd/species/gases/hydrogen_air_bulk.xml
 Thus, this module shall be included AFTER that backend. e.g.
 
 <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
-<Include file="resources/Presets/cfd/species/species.xml" />
+<Include file="resources/Presets/cfd/species/multi_component_and_treatment.xml" />
 -->
 
 <sphInput>

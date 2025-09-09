@@ -29,10 +29,6 @@
  * This is an replacement for resources/Scripts/basic/EOS.cl
  */
 
-#ifndef EXCLUDED_PARTICLE
-#define EXCLUDED_PARTICLE(index) (imove[index] <= 0) && (imove[index] != -1)
-#endif
-
 #include "resources/Scripts/types/types.h"
 #ifndef SPECIES_HEADER
 #error "species.xml module requires to load a backend module"
@@ -67,7 +63,7 @@ entry(const __global unsigned int* iset,
 	usize i = get_global_id(0);
 	if (i >= N)
 		return;
-	if (EXCLUDED_PARTICLE(i))
+	if (imove[i] != 1)
 		return;
 
 	T[i] = eint[i] / cv[i];
