@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
+
+You can load this model any time after cfd.xml
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="nu" type="float*" length="N" />
+        <Variable name="nu_in" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" name="Backup nu" before="sort stage1,sort stage2" type="copy" in="nu"
+            out="nu_in" />
+
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort visc" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/heat/Sort_nu.cl" />
+
+    </Tools>
+</sphInput>

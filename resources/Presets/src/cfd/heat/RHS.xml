@@ -6,6 +6,8 @@ Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
 You can load this model any time after cfd.xml
 -->
 
+<!-- too long and complex file. should be substituded by RHS_all when it is ready-->
+
 <sphInput>
     <Variables>
         <Variable name="xi" type="float*" length="N" />

@@ -45,6 +45,7 @@
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
+ * @param div_pi Divergene of the stress tensor.
  * @param N Number of particles.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -67,6 +68,7 @@ entry(const __global unsigned int* iset,
       __global float* div_u,
       __global float* work_density,
       __constant float* gamma,
+	  __global vec* div_pi,
       usize N,
       LINKLIST_LOCAL_PARAMS)
 {
@@ -89,16 +91,20 @@ entry(const __global unsigned int* iset,
 
 #ifndef LOCAL_MEM_SIZE
 	#define _GRADP_ grad_p[i].XYZ
+	#define _DIVPI_ div_pi[i].XYZ
 	#define _W_DEN_ work_density[i]
 	#define _DIVU_ div_u[i]
 #else
 	#define _GRADP_ grad_p_l[it]
+	#define _DIVPI_ div_pi_l[it]
 	#define _W_DEN_ work_density_l[it]
 	#define _DIVU_ div_u_l[it]
 	__local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
+	__local vec_xyz div_pi_l[LOCAL_MEM_SIZE];
 	__local float work_density_l[LOCAL_MEM_SIZE];
 	__local float div_u_l[LOCAL_MEM_SIZE];
 	_GRADP_ = VEC_ZERO.XYZ;
+	_DIVPI_ = VEC_ZERO.XYZ;
 	_W_DEN_ = 0.0f;
 	_DIVU_ = 0.0f;
 #endif
@@ -145,9 +151,9 @@ entry(const __global unsigned int* iset,
 			    h_ij_med * v_dot_r /
 			    (dot(r_ij, r_ij) + TINY_EPS * h_ij_med * h_ij_med);
 
-			float PI_ij = 0.0f;
+			float pi_ij = 0.0f;
 			if (mu_ij < 0.0f) {
-				PI_ij = rho_ij_med_inv * (-ALPHA_MG * s_ij_med * mu_ij +
+				pi_ij = rho_ij_med_inv * (-ALPHA_MG * s_ij_med * mu_ij +
 				                          BETA_MG * mu_ij * mu_ij);
 			}
 
@@ -155,18 +161,25 @@ entry(const __global unsigned int* iset,
 
 			_DIVU_ += local_div;
 
+			/*_GRADP_ -= 
+				(p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j) + pi_ij) *
+				r_ij * f_ij;*/
+
 			_GRADP_ -= 
-				(p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j) + PI_ij) *
+				(p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j)) *
 				r_ij * f_ij;
 
+			_DIVPI_ -= pi_ij * r_ij * f_ij;
+
 			_W_DEN_ += p[i] / (rho[i] * rho[i]) * local_div +
-			           0.5f * PI_ij * v_dot_r * f_ij;
+			           0.5f * pi_ij * v_dot_r * f_ij;
 		}
 	}
 	END_NEIGHS()
 
 #ifdef LOCAL_MEM_SIZE
 	grad_p[i].XYZ = _GRADP_;
+	div_pi[i].XYZ = _DIVPI_;
 	work_density[i] = _W_DEN_;
 	div_u[i] = _DIVU_;
 #endif

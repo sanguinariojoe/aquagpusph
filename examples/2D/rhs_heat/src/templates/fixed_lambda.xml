@@ -6,6 +6,6 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
 <sphInput>
     <Tools>
-        <Tool action="replace" name="EOS" type="kernel" path="EOS_fixed_lambda.cl" />
+        <Tool action="insert" after="properties on temperature" name="fixed_lamda" type="kernel" path="fixed_lambda.cl" />
     </Tools>
 </sphInput>

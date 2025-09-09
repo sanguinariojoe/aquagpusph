@@ -16,33 +16,40 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @brief 1st order Euler time integration scheme corrector stage
+/** @file
+ * @brief Velocity and density variation rates computation.
+ */
+
+#include "resources/Scripts/types/types.h"
+
+/** @brief Energy variation rates computation.
+ *
+ * The energy conservation are applied from the already
+ * computed differential operators:
+ *
+ * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param rhs_qdot change of internal energy due to heat conduction
- * @param deintdt Internal energy rate of change
- * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
+ * @param div_pi divergence of the tress tensor
+ * @param dudt rate of change of the speed
  * @param N Number of particles.
- * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void
-add(const __global int* imove,
-    __global float* deintdt,
-    const __global float* rhs_qdot,
-    const unsigned int N,
-    const float dt)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    const __global vec* div_pi,
+                    __global vec* dudt,
+                    const usize N)
 {
-	usize i = get_global_id(0);
-	if (i >= N)
-		return;
+    const usize i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != 1)
+        return;
 
-	if (imove[i] > 0) {
-		deintdt[i] += rhs_qdot[i];
-	}
+    // Conservation of energy equation
+    dudt[i] -= div_pi[i];    
 }
 
-/*
- * @}
- */
+

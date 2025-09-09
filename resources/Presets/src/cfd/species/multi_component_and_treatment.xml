@@ -13,43 +13,35 @@ See for instance cfd/species/gases/hydrogen_air_bulk.xml
 Thus, this module shall be included AFTER that backend. e.g.
 
 <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
-<Include file="resources/Presets/cfd/species/species.xml" />
+<Include file="resources/Presets/cfd/species/multi_component_and_treatment.xml" />
 -->
 
 <sphInput>
     <Variables>
-        <Variable name="T" type="float*" length="N" />
-        <Variable name="gamma" type="float*" length="N" />
-        <Variable name="cv" type="float*" length="N" />
-        <Variable name="cp" type="float*" length="N" />
-        <Variable name="nu" type="float*" length="N" />
-        <Variable name="xi" type="float*" length="N" />
-        <Variable name="mu" type="float*" length="N" />
-        <Variable name="lambda" type="float*" length="N" />
-
-        <Variable name="z" type="float*" length="N" />
-        <Variable name="z_in" type="float*" length="N" />
-        <Variable name="dz_dt" type="float*" length="N" />
-
         <Variable name="ys" type="species_t*" length="N" />
         <Variable name="ys_in" type="species_t*" length="N" />
 
-        <Variable name="xs" type="species_t*" length="N" />        
+        <Variable name="z" type="float*" length="N" />
+        <Variable name="z_in" type="float*" length="N" />
 
         <Variable name="dysdt" type="species_t*" length="N" />
         <Variable name="dysdt_in" type="species_t*" length="N" />
+        <Variable name="dz_dt" type="float*" length="N" />
+
     </Variables>
 
     <Tools>
-        
-        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="(species_t)(0.f)" />
+
+        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt"
+            value="(species_t)(0.f)" />
+        <Tool action="insert" after="Sort" type="set" name="reinit dz_dt" in="dz_dt"
+            value="0.f" />
 
         <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel"
             entry_point="predictor" path="../../../Scripts/cfd/species/euler.cl" />
 
         <Tool action="insert" after="sort stage1,sort stage2" name="sort species" type="kernel"
             entry_point="entry" path="../../../Scripts/cfd/species/Sort.cl" />
-        <Tool action="replace" name="EOS" type="kernel" path="../../../Scripts/cfd/species/EOS.cl" />
 
         <Tool action="insert" after="corrector" name="corrector species" type="kernel"
             entry_point="corrector" path="../../../Scripts/cfd/species/euler.cl" />

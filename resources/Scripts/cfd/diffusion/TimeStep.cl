@@ -20,8 +20,8 @@
  * @brief Variable time step computation.
  */
 
-#define PASTE(x,y) x ## _ ## y
-#define EVALUATE_AND_PASTE(x,y) PASTE(x,y)
+#define PASTE(x, y) x##_##y
+#define EVALUATE_AND_PASTE(x, y) PASTE(x, y)
 #define reduce_max EVALUATE_AND_PASTE(reduce_max, species_t)
 
 #include "resources/Scripts/types/types.h"
@@ -54,17 +54,14 @@
  * @param dt_var Variable time step \f$ \mathrm{min} \left(
  * C_f \frac{h}{c_s}, C_f \frac{h}{10 \vert \mathbf{u} \vert}\right)\f$.
  * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
- * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param N Number of particles.
  * @param dt Fixed time step \f$ \Delta t = C_f \frac{h}{c_s} \f$.
  * @param dt_min Minimum time step \f$ \Delta t_{\mathrm{min}} \f$.
  * @param courant Courant factor \f$ C_f \f$.
- * @param h Kernel characteristic length \f$ h \f$.
  * @param div_u divergence of u * rho
  * @param grad_p grad of p / rho
  * @param gamma politropic coeficient
  * @param lambda thermal conductivity
- * @param C_p heat t constat pressure
  * @param D_xx diffusion coeficcient
  */
 __kernel void
@@ -72,20 +69,15 @@ entry(__global float* dt_var,
       const __global int* imove,
       const __global unsigned int* iset,
       const __global vec* u,
-      const __global vec* dudt,
       const __global float* rho,
       const __global float* p,
-      const __global float* m,
       const usize N,
       const float dt,
       const float dt_min,
       const float courant,
-      const float h,
       const __global float* div_u,
       const __global vec* grad_p,
       __constant float* gamma,
-      const __global float* lambda,
-      const __global float* cp,
       const __global species_t* Ds)
 {
 	const usize i = get_global_id(0);
@@ -109,9 +101,7 @@ entry(__global float* dt_var,
 	    courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
 
 	const float dt_u4 = courant * dxx / (length(u[i]) + 1.0e-12f);
-	// const float dt_u5 = 0.1f / zeta_dot[i];
 
-	const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
 	const float dt_u6 =
 	    courant * dxx / (s_i + dxx * sqrt(div_u[i] * div_u[i]) / rho[i]);
 
@@ -119,8 +109,7 @@ entry(__global float* dt_var,
 	const float dt_u7 = reduce_max(dt_many);
 
 	const float dt_u =
-	    min(min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6),
-	        dt_u7);
+	    min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u6), dt_u7);
 
 	dt_var[i] = max(min(dt, dt_u), dt_min);
 }

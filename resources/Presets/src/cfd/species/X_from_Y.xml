@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<sphInput>
+    <Variables>
+        <Variable name="xs" type="species_t*" length="N" />   
+    </Variables>
+
+    <Tools>
+
+        <Tool action="insert" after="EOS" name="X from Y" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/species/X_from_Y.cl" />
+    </Tools>
+</sphInput>
