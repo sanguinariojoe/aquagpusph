@@ -38,17 +38,16 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param N Number of particles.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param n_cells Number of cells in each direction
+ * @param grad_zeta gradeint of progress of the reaction. 
+ * @param z Tracer species.
+ * @param ys chemical species.
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,

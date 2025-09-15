@@ -30,6 +30,14 @@
 #define E_ch 7000.0f
 #define K_ch 1.0e7f
 
+
+
+/** @brief Compute a measure of the compression.
+ *
+ * @param zeta progress of reaction.
+ * @param T temperature.
+ * 
+ */
 inline float
 arrhenius_detonation(float zeta, float T)
 {
@@ -37,18 +45,18 @@ arrhenius_detonation(float zeta, float T)
 	return K_ch * (1.0f - zeta) * exp(-E_ch / T);
 }
 
+
+/** @brief Compute rate of progress of the reaction. Inside of each particle.
+ *
+ * @param z tracer.
+ * @param y_0 same component as tracer bt burning.
+ * @param T temperature.
+ * @param MMix molar mass of the mixture.
+ *  */
 #define LOW_CONC 4.0e-2f
 inline float
 zeta_dot_calc_arrhenius(float z, float T, float y_0, float MMix)
 {
-
-	// float MMix;
-	// MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
-	// const float Mis[4] = {0.002f, 0.032f, 0.028f, 0.018f};
-
-	// calculatate molar fraction
-	// of mixture
-
     const species_t Mis = MIS;
 	float zx = MMix / Mis.SPECIES_COMPONENT0 * z;
 
@@ -64,6 +72,16 @@ zeta_dot_calc_arrhenius(float z, float T, float y_0, float MMix)
 	}
 }
 
+
+/** @brief Compute rate of progress of the reaction for each mass fraction for each particle.
+ *
+ * @param z tracer.
+ * @param T temperature.
+ * @param ys chemical species.
+ * @param w_rhos sink sources of the mass fractions.
+ * @param deintdt change of the internal energy.
+ * @param zeta_dot rate of change of the dimensionless progress of the reaction.
+ *  */
 void
 w_rhos_arrhenius_det(
     float z,

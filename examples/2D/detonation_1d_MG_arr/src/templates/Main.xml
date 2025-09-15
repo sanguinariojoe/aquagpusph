@@ -26,9 +26,6 @@ Authors:
     <Include file="resources/Presets/cfd/ideal_gas/riemann.xml" />
     <Include file="resources/Presets/cfd/ideal_gas/riemann_MG.xml" />
     <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
-    <!--<Include file="resources/Presets/cfd/species/species.xml" />-->
-
-    <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
     <Include file="resources/Presets/cfd/species/multi_component_and_treatment.xml" />
     <Include file="resources/Presets/cfd/species/EOS.xml" />
     <Include file="resources/Presets/cfd/species/temperature.xml" />

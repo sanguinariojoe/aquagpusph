@@ -19,8 +19,21 @@
 
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/cfd/reaction/reaction_generic.hcl"
-#include "resources/Scripts/cfd/reaction/arrhenius_detonation.hcl"
+#include "resources/Scripts/cfd/reaction/zimont_deflagration.hcl"
 
+/** @brief Compute the reaction sources sinks for each particle.
+ *
+ * @param rho density.
+ * @param eint internal energy.
+ * @param p pressure.
+ * @param T temperature.
+ * @param z tracer.
+ * @param ys chemical species.
+ * @param trigger virtual plug.
+ * @param deintdt change of internal energy.
+ * @param dysdt change of species.
+ * @param zeta_dot rate of change of the reaction. 
+ */ 
 __kernel void
 entry(const __global unsigned int* iset,
       const __global int* imove,

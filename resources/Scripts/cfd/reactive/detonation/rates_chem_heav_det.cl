@@ -16,12 +16,25 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/cfd/reactive/reaction_generic.hcl"
 #include "resources/Scripts/cfd/reactive/detonation/heav_detonation.hcl"
 
+
+
+/** @brief Compute the reaction sources sinks for each particle.
+ *
+ * @param rho density.
+ * @param eint internal energy.
+ * @param p pressure.
+ * @param T temperature.
+ * @param z tracer.
+ * @param ys chemical species.
+ * @param trigger virtual plug.
+ * @param deintdt change of internal energy.
+ * @param dysdt change of species.
+ * @param zeta_dot rate of change of the reaction. 
+ */
 __kernel void entry(const __global unsigned int* iset,
                     const __global int* imove,
                     const __global float* rho,

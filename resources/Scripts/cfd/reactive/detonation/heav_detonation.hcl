@@ -28,6 +28,10 @@
 #define TLOW 800.0f
 #define THIGH 1700.0f
 
+/** @brief Compute a measure of the compression.
+ *
+ * @param T temperature.
+ */
 inline float
 heav_factor(float T){
 
@@ -41,6 +45,15 @@ heav_factor(float T){
 	}
 }
 
+/** @brief Compute rate of progress of the reaction. Inside of each particle.
+ *
+ * @param z tracer.
+ * @param y_0 same component as tracer bt burning.
+ * @param T temperature.
+ * @param MMix molar mass of the mixture.
+ * @param trigger virtual plug
+ *  */
+inline float
 #define LOW_CONC 4.0e-2f
 inline float
 zeta_dot_calc_heav(float z, float T, float y_0, float MMix, int trigger)
@@ -51,6 +64,7 @@ zeta_dot_calc_heav(float z, float T, float y_0, float MMix, int trigger)
 
 	float zeta;
 	float hevfact;
+
 	// check that there is mroe than 4%
 	if (zx > LOW_CONC) {
 		zeta = give_zeta(z, y_0);
@@ -67,6 +81,17 @@ zeta_dot_calc_heav(float z, float T, float y_0, float MMix, int trigger)
 
 }
 
+
+/** @brief Compute rate of progress of the reaction for each mass fraction for each particle.
+ *
+ * @param z tracer.
+ * @param T temperature.
+ * @param ys chemical species.
+ * @param trigger virtual plug
+ * @param w_rhos sink sources of the mass fractions.
+ * @param deintdt change of the internal energy.
+ * @param zeta_dot rate of change of the dimensionless progress of the reaction.
+ *  */
 void
 w_rhos_heav_det(
     float z,
