@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
-<!-- ideal_gas.xml
-Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+<!-- reactive_arrhenius_heav.xml
+Calculate detonation with a consumption formula based on model 
 -->
 
 <sphInput>

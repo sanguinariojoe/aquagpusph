@@ -29,33 +29,23 @@
  * In SPH the time step is selected to enforce the particles may not move more
  * than \f$ 0.1 h \f$, where the Courant factor is not taken into account yet.
  *
- * Along this line, the distance moved by a particle can be written as follows:
- *
- * \f$ \vert \mathbf{r}_{n+1} - \mathbf{r}_{n} \vert = 
- *     \vert \mathbf{u} \vert \Delta t +
- *     \frac{1}{2} \left\vert
- *                     \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
- *                 \right\vert {\Delta t}^2 +
-       \mathcal{O}({\Delta t}^3) \f$
- *
- * Such that, taking maximums, and rearraging the equation:
- *
- * \f$ \Delta t = \frac{1}{20} \min \left(
- *     \frac{h}{\vert \mathbf{u} \vert},
- *     \sqrt{\frac{2 h}{\left\vert
- *                          \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
- *                      \right\vert}}
- * \right) \f$
- *
  * @param dt_var Variable time step \f$ \mathrm{min} \left(
  * C_f \frac{h}{c_s}, C_f \frac{h}{10 \vert \mathbf{u} \vert}\right)\f$.
  * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param rho Density.
+ * @param p pressure.
+ * @param m particle mass.
  * @param N Number of particles.
  * @param dt Fixed time step \f$ \Delta t = C_f \frac{h}{c_s} \f$.
  * @param dt_min Minimum time step \f$ \Delta t_{\mathrm{min}} \f$.
  * @param courant Courant factor \f$ C_f \f$.
  * @param h Kernel characteristic length \f$ h \f$.
+ * @param div_u Velocity divergence.
+ * @param grad_p gradient of pressure.
+ * @param div_u Velocity divergence.
+ * @param gamma polytropic index.
+ * @param zeta_dot dimensionless rate of advance of the reaction.
  */
 
 __kernel void entry(__global float* dt_var,

@@ -1,4 +1,9 @@
 <?xml version="1.0" ?>
+
+<!-- variableTimeStep_detonation.xml
+Adaptive time step for detonation
+-->
+
 <sphInput>
     <Variables>
         <Variable name="courant" type="float" value="0.25" />

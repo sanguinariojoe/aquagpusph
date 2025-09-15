@@ -52,13 +52,10 @@
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    //const __global vec* u,
                     const __global float* rho,
                     const __global float* m,
-                    //const __global float* p,
                     __global vec* grad_zeta,
                     const __global float* z,
-                    //const __global float* y_H2,
                     const __global float* ys,
                     usize N,
                     LINKLIST_LOCAL_PARAMS)
@@ -74,7 +71,6 @@ __kernel void entry(const __global int* imove,
     const vec_xyz r_i = r[i].XYZ;
    
     const float z_i = z[i];
-//    const float y_H2_i = y_H2[i];
     const float y_0_i = ys[i].SPECIES_COMPONENT0;
 
     const float rho_i = rho[i];

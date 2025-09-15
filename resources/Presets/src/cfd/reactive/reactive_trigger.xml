@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
-<!-- ideal_gas.xml
-Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+<!-- reactive_trigger.xml
+Trigger the reaction locally, kind of numerical spark plug
 -->
 
 <sphInput>
