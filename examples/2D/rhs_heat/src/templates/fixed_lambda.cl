@@ -35,7 +35,7 @@
 
 #include "resources/Scripts/types/types.h"
 #ifndef SPECIES_HEADER
-#error "species.xml module requires to load a backend module"
+#error "working with species requires to load a backend module"
 #endif
 #include SPECIES_HEADER
 

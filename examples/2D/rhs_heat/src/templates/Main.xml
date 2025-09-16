@@ -25,9 +25,7 @@ Authors:
     <Include file="ideal_gas_steady.xml" />
     <Include file="riemann_steady.xml" />
     <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
-    <!--<Include file="resources/Presets/cfd/species/species.xml" />-->
-    
-    <!--<Include file="resources/Presets/cfd/heat/RHS.xml" />-->
+
     <Include file="resources/Presets/cfd/heat/nu_and_treatment.xml" />
     <Include file="resources/Presets/cfd/heat/xi_and_treatment.xml" />
 

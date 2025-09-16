@@ -20,7 +20,7 @@
 #define _ARRHENIUS_DETONATION_H_INCLUDED_
 
 #ifndef SPECIES_HEADER
-#error "species.xml module requires to load a backend module"
+#error "working with species requires to load a backend module"
 #endif
 #include SPECIES_HEADER
 // #include "resources/Scripts/cfd/species/species_auxiliary.hcl"
