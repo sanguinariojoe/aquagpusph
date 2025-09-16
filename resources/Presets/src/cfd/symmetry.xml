@@ -55,7 +55,7 @@ prefix, for instance:
         <Tool name="cfd symmetry count buffer particles" action="insert" before="Predictor" type="reduction" in="imirror" out="required_nbuffer" null="0">
             c = a + b;
         </Tool>
-        <Tool name="cfd symmetry check buffer particles" action="insert" before="Predictor" type="assert" condition="nbuffer >= required_nbuffer"/>
+        <Tool name="cfd symmetry check buffer particles" action="insert" before="Predictor" type="assert" condition="nbuffer &gt;= required_nbuffer"/>
 
         <!-- Feed the system with the new particles -->
         <Tool name="cfd symmetry feed" action="insert" before="Predictor" type="kernel" path="../../Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="feed"/>
