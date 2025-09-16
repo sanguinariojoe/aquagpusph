@@ -10,6 +10,7 @@ rm -f AQUAgpusph.save.* log.* set0.*.dat vars.out
 set +e
 @BINARY_DIR@/@BINARY_NAME@ -d 2 -i invalid_xml.xml
 @BINARY_DIR@/@BINARY_NAME@ -d 2 -i invalid_dom.xml
+@BINARY_DIR@/@BINARY_NAME@ -d 2 -i invalid_attr.xml
 set -e
 
 # Check the result

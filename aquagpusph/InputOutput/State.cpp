@@ -276,6 +276,8 @@ State::findPath(const std::string& filepath, ProblemSetup& sim_data)
 
 class XMLErrorHandler : public HandlerBase {
 public:
+    virtual void warning(const SAXParseException &exc) { throw exc; }
+    virtual void error(const SAXParseException &exc) { throw exc; }
     virtual void fatalError(const SAXParseException &exc) { throw exc; }
 };
 
@@ -303,9 +305,10 @@ State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 	XercesDOMParser* parser = new XercesDOMParser();
 	XMLErrorHandler handler;
 	parser->setErrorHandler(&handler);
-	parser->setValidationScheme(XercesDOMParser::Val_Always);
-	parser->setDoNamespaces(true);
-	parser->setDoSchema(true);
+	parser->setValidationScheme(XercesDOMParser::Val_Auto);
+	parser->setDoNamespaces(false);
+	parser->setDoSchema(false);
+	parser->setValidationSchemaFullChecking(false);
 	parser->setLoadExternalDTD(false);
 	try {
 		parser->parse(filepath.c_str());
