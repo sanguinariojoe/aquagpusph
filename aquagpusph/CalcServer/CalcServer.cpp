@@ -1410,7 +1410,7 @@ CalcServer::setupDevices()
 	CHECK_OCL_OR_THROW(err_code, "Failure generating the trigger event.");
 	try {
 		sampler = marker(_command_queues.front(), { trigger });
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		LOG(L_ERROR, std::string("While generating the sampler event.\n"));
 	}
 	err_code = clSetEventCallback(
