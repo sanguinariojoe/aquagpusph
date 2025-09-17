@@ -50,7 +50,7 @@
  * For more information about this development, please visit the following web
  * page:
  *
- * http://canal.etsin.upm.es/
+ * https://aquagpusph.org/
  *
  * <hr>
  *
@@ -127,7 +127,7 @@ main(int argc, char* argv[])
 	    << "\t#                                                       #" << std::endl
 	    << "\t#########################################################" << std::endl
 	    << "\tAnother QUAlity GPU-SPH, by CEHINAV (UPM) group." << std::endl
-	    << "\t\thttp://canal.etsin.upm.es/" << std::endl
+	    << "\t\thttps://aquagpusph.org/" << std::endl
 	    << "\tAuthors:" << std::endl
 	    << "\t\tJose Luis Cercos Pita" << std::endl
 	    << "\t\tLeo Miguel Gonzalez" << std::endl
