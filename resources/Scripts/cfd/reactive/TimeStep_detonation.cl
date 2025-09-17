@@ -48,45 +48,53 @@
  * @param zeta_dot dimensionless rate of advance of the reaction.
  */
 
-__kernel void entry(__global float* dt_var,
-                    const __global int* imove,
-                    const __global unsigned int* iset,
-                    const __global vec* u,
-                    const __global vec* dudt,
-                    const __global float* rho,
-                    const __global float* p,
-		            const __global float* m,
-                    const usize N,
-                    const float dt,
-                    const float dt_min,
-                    const float courant,
-                    const float h,
-                    const __global float* div_u,
-                    const __global vec* grad_p,
-                    const __global float* gamma,
-                    const __global float* zeta_dot)
+__kernel void
+entry(__global float* dt_var,
+      const __global int* imove,
+      const __global unsigned int* iset,
+      const __global vec* u,
+      const __global vec* dudt,
+      const __global float* rho,
+      const __global float* p,
+      const __global float* m,
+      const usize N,
+      const float dt,
+      const float dt_min,
+      const float courant,
+      const float h,
+      const __global float* div_u,
+      const __global vec* grad_p,
+      const __global vec* div_pi,
+      const __global float* gamma,
+      const __global float* zeta_dot)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] <= 0) {
-        dt_var[i] = dt;
-        return;
-    }
-    
-    const float dxx=H;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] <= 0) {
+		dt_var[i] = dt;
+		return;
+	}
 
-    const float s_i = sound_speed_perfect_gas(gamma[i], p[i], rho[i]);
+	const float dxx = H;
 
-    const float dt_u1 = courant * 0.4f * dxx / sqrt((4.0f * dxx * div_u[i] / rho[i])*(4.0f * dxx * div_u[i] / rho[i]) + s_i * s_i);
-    const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i])) );
-    //const float dt_u3 = courant * sqrt(dxx / (length(dudt[i]))); 
-    const float dt_u3 = courant * dxx / (length(u[i])+1.0e-12f);
-    const float dt_u4 = courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
-    const float dt_u5 = courant * 0.5f / (zeta_dot[i]+1.0e-5f);
-    const float dt_u6 = courant * dxx / (s_i + dxx * sqrt(div_u[i]*div_u[i])/ rho[i]);
-    //float dt_u = min(min(min(dt_u1, dt_u2), dt_u3), dt_u4);
-    const float dt_u = min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6);
+	const float s_i = sound_speed_perfect_gas(gamma[i], p[i], rho[i]);
 
-    dt_var[i] = max(min(dt, dt_u), dt_min);
+	const float dt_u1 = courant * 0.4f * dxx /
+	                    sqrt((4.0f * dxx * div_u[i] / rho[i]) *
+	                             (4.0f * dxx * div_u[i] / rho[i]) +
+	                         s_i * s_i);
+	const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i] + div_pi[i])));
+	// const float dt_u3 = courant * sqrt(dxx / (length(dudt[i])));
+	const float dt_u3 = courant * dxx / (length(u[i]) + 1.0e-12f);
+	const float dt_u4 =
+	    courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
+	const float dt_u5 = courant * 0.5f / (zeta_dot[i] + 1.0e-5f);
+	const float dt_u6 =
+	    courant * dxx / (s_i + dxx * sqrt(div_u[i] * div_u[i]) / rho[i]);
+	// float dt_u = min(min(min(dt_u1, dt_u2), dt_u3), dt_u4);
+	const float dt_u =
+	    min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6);
+
+	dt_var[i] = max(min(dt, dt_u), dt_min);
 }
