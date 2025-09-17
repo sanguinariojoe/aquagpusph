@@ -53,8 +53,9 @@ heav_factor(float T){
  * @param MMix molar mass of the mixture.
  * @param trigger virtual plug
  *  */
-inline float
+
 #define LOW_CONC 4.0e-2f
+
 inline float
 zeta_dot_calc_heav(float z, float T, float y_0, float MMix, int trigger)
 {
