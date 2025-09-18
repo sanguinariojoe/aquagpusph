@@ -1771,6 +1771,11 @@ Variables::registerScalar(const std::string name,
 		}
 		throw std::runtime_error("Invalid scalar variable type");
 	}
+
+	// Ensure the variable is registrered on the math parser, even if it has no
+	// value yet. Otherwise exprtk would fail at the time of parsing
+	// expressions containing the variable
+	populate(_vars.back());
 }
 
 void
