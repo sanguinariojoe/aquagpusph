@@ -16,7 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef _ARRHENIUS_DETONATION_H_INCLUDED_
 #define _ARRHENIUS_DETONATION_H_INCLUDED_
 
@@ -24,19 +23,17 @@
 #error "working with species requires to load a backend module"
 #endif
 #include SPECIES_HEADER
-//#include "resources/Scripts/cfd/species/species_auxiliary.hcl"
+
 #include "resources/Scripts/cfd/reactive/reaction_generic.hcl"
 
 #define E_ch 7000.0f
 #define K_ch 1.0e7f
 
-
-
 /** @brief Compute a measure of the compression.
  *
  * @param zeta progress of reaction.
  * @param T temperature.
- * 
+ *
  */
 inline float
 arrhenius_detonation(float zeta, float T)
@@ -44,7 +41,6 @@ arrhenius_detonation(float zeta, float T)
 
 	return K_ch * (1.0f - zeta) * exp(-E_ch / T);
 }
-
 
 /** @brief Compute rate of progress of the reaction. Inside of each particle.
  *
@@ -57,7 +53,7 @@ arrhenius_detonation(float zeta, float T)
 inline float
 zeta_dot_calc_arrhenius(float z, float T, float y_0, float MMix)
 {
-    const species_t Mis = MIS;
+	const species_t Mis = MIS;
 	float zx = MMix / Mis.SPECIES_COMPONENT0 * z;
 
 	float zeta;
@@ -67,13 +63,12 @@ zeta_dot_calc_arrhenius(float z, float T, float y_0, float MMix)
 		zeta = give_zeta(z, y_0);
 		return arrhenius_detonation(zeta, T);
 	} else {
-		//        zeta = 1.0;
 		return 0.0f;
 	}
 }
 
-
-/** @brief Compute rate of progress of the reaction for each mass fraction for each particle.
+/** @brief Compute rate of progress of the reaction for each mass fraction for
+ * each particle.
  *
  * @param z tracer.
  * @param T temperature.
@@ -83,18 +78,15 @@ zeta_dot_calc_arrhenius(float z, float T, float y_0, float MMix)
  * @param zeta_dot rate of change of the dimensionless progress of the reaction.
  *  */
 void
-w_rhos_arrhenius_det(
-    float z,
-    float T, 
-    species_t ys,
-    __global species_t* w_rhos,
-    __global float* deintdt,
-    __global float* zeta_dot)
+w_rhos_arrhenius_det(float z,
+                     float T,
+                     species_t ys,
+                     __global species_t* w_rhos,
+                     __global float* deintdt,
+                     __global float* zeta_dot)
 {
 
-    float MMix = molar_mass_mixture(ys);
-
-	// float inv_MMix = 1.0f / MMix;
+	float MMix = molar_mass_mixture(ys);
 
 	*zeta_dot = zeta_dot_calc_arrhenius(z, T, ys.SPECIES_COMPONENT0, MMix);
 
