@@ -42,7 +42,7 @@ Thus, this module shall be included AFTER that backend. e.g.
 
     <Tools>
         
-        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="(species_t)(0.f)" />
+        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="(species_t)(0.0f)" />
 
         <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel"
             entry_point="predictor" path="../../../Scripts/cfd/species/euler.cl" />

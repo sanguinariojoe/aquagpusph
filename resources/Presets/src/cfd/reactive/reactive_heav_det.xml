@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+
+<!-- reactive_arrhenius_heav.xml
+Calculate detonation with a consumption formula based on model 
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="insert" before="Rates" type="kernel" name="cfd rates ideal gas" path="../../../Scripts/cfd/reactive/detonation/rates_chem_heav_det.cl"/>
+    </Tools>
+</sphInput>

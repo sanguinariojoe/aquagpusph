@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <!--
    #    ##   #  #   #
   # #  #  #  #  #  # #                          #
@@ -10,7 +10,7 @@
                          ##  #             #
 
 Another QUAlity GPU-SPH, by CEHINAV.
-    https://aquagpusph.org/
+    http://canal.etsin.upm.es/
 Authors:
     Jose Luis Cercos-Pita
     Leo Miguel Gonzalez
@@ -21,26 +21,21 @@ Authors:
     <!-- In this file we will just include other XML definition files -->
     <Include file="resources/Presets/basic.xml" />
     <Include file="resources/Presets/basic/domain.xml" />
-    <Include file="cfd_steady.xml" />
-    <Include file="ideal_gas_steady.xml" />
-    <Include file="riemann_steady.xml" />
+    <Include file="resources/Presets/cfd.xml" />
+    <Include file="resources/Presets/cfd/ideal_gas.xml" />
+    <Include file="resources/Presets/cfd/ideal_gas/riemann.xml" />
+    <Include file="resources/Presets/cfd/ideal_gas/riemann_MG.xml" />
+
     <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
-
-    <Include file="resources/Presets/cfd/heat/nu_and_treatment.xml" />
-    <Include file="resources/Presets/cfd/heat/xi_and_treatment.xml" />
-
     <Include file="resources/Presets/cfd/species/multi_component_and_treatment.xml" />
     <Include file="resources/Presets/cfd/species/EOS.xml" />
     <Include file="resources/Presets/cfd/species/temperature.xml" />
-    <Include file="resources/Presets/cfd/species/temperature_dependent_properties.xml" />
-    <Include file="fixed_lambda.xml" />
-    <Include file="resources/Presets/cfd/heat/heat_transfer.xml" />
+    <Include file="resources/Presets/cfd/species/X_from_Y.xml" />
 
-    <!-- #################################  -->
-
-    <!--<Include file="EOS_fixed_lambda.xml" />-->
+    <Include file="resources/Presets/cfd/reactive/reactive_arrhenius_det.xml" />
     <Include file="resources/Presets/cfd/variableTimeStep.xml" />
-    <Include file="resources/Presets/cfd/heat/variableTimeStep.xml" />
+    <Include file="resources/Presets/cfd/reactive/variableTimeStep_detonation.xml" />
+
     <Include file="resources/Presets/basic/timing.report.xml" />
     <Include file="resources/Presets/basic/performance.report.xml" />
     <Include file="Settings.xml" />
@@ -48,6 +43,6 @@ Authors:
     <Include file="Time.xml" />
     <Include file="Fluids.xml" />
     <Include file="BC.xml" />
-
-    <Include file="resources/Presets/basic/kernels/cubicSpline.xml" when="end" />
+    
+    <Include file="resources/Presets/basic/kernels/cubicSpline.xml" when="end"/>
 </sphInput>
