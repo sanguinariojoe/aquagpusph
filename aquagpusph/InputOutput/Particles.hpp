@@ -130,13 +130,16 @@ class Particles : public InputOutput
 	virtual void print_file()
 	{
 		cl_int err_code;
-		err_code = clSetUserEventStatus(_user_event, CL_COMPLETE);
+		// waitForSavers() will try to get rid of _user_event variable, so in
+		// order to avoid race conditions we better store the event
+		cl_event user_event = _user_event;
+		err_code = clSetUserEventStatus(user_event, CL_COMPLETE);
 		if (err_code != CL_SUCCESS) {
 			LOG(L_ERROR, "Failure setting the user event as completed.\n");
 			Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL error");
 		}
-		err_code = clReleaseEvent(_user_event);
+		err_code = clReleaseEvent(user_event);
 		if (err_code != CL_SUCCESS) {
 			LOG(L_ERROR, "Failure releasing the user event.\n");
 			Logger::singleton()->printOpenCLError(err_code);
