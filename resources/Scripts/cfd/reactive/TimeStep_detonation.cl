@@ -84,7 +84,7 @@ entry(__global float* dt_var,
 	                    sqrt((4.0f * dxx * div_u[i] / rho[i]) *
 	                             (4.0f * dxx * div_u[i] / rho[i]) +
 	                         s_i * s_i);
-	const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i] + div_pi[i])));
+	const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i] + div_pi[i]) + 1.0e-12f));
 	// const float dt_u3 = courant * sqrt(dxx / (length(dudt[i])));
 	const float dt_u3 = courant * dxx / (length(u[i]) + 1.0e-12f);
 	const float dt_u4 =
