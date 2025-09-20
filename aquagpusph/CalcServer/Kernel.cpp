@@ -440,15 +440,11 @@ Kernel::make(const std::string entry_point,
 		return;
 	}
 
-	if (available_local_mem >= used_local_mem) {
-		LOG0(L_DEBUG, "OK\n");
-		// Swap kernels
-		err_code = clReleaseKernel(_kernel);
-		CHECK_OCL_OR_THROW(
-			err_code,
-			std::string("Failure releasing non-local memory based kernel ") +
-				"in tool \"" + name() + "\".");
-		_kernel = kernel;
+	if (available_local_mem < used_local_mem) {
+		LOG(L_ERROR, "Not enough available local memory.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		clReleaseKernel(kernel);
+		LOG(L_INFO, "Falling back to no local memory usage.\n");
 		return;
 	}
 
@@ -467,7 +463,6 @@ Kernel::make(const std::string entry_point,
 		return;
 	}
 
-	work_group_size = work_group_size * available_local_mem / used_local_mem;
 	if (work_group_size < pwgsm) {
 		LOG(L_ERROR, "Not enough available local memory.\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -476,7 +471,12 @@ Kernel::make(const std::string entry_point,
 		return;
 	}
 
-	work_group_size = pwgsm * (work_group_size / pwgsm);
+	size_t npwgs = work_group_size / pwgsm;
+	if (!isPowerOf2(npwgs))
+		npwgs = nextPowerOf2(npwgs) / 2;
+	if (npwgs > C->device_npwgs())
+		npwgs = C->device_npwgs();
+	work_group_size = pwgsm * npwgs;
 	LOG(L_INFO, std::string("Reducing the number of threads to ")
 	            + std::to_string(work_group_size) + "...\n");
 	flags << " -DLOCAL_MEM_SIZE=" << work_group_size;

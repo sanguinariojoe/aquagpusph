@@ -277,6 +277,12 @@ class DECLDIR CalcServer
 	 */
 	inline cl_uint device_addr_bits() const { return _device_bits; }
 
+	/** @brief Get the wanted number of "preferred work group size multiple" to
+	 * set the work group size (if possible)
+	 * @return The number of "preferred work group size multiple"
+	 */
+	inline cl_uint device_npwgs() const { return _npwgs; }
+
 	/** @brief Get the device compilation flags
 	 * @return The device compilation flags
 	 */
@@ -468,6 +474,8 @@ class DECLDIR CalcServer
 	cl_device_id _device;
 	/// Supported device bits (CL_DEVICE_ADDRESS_BITS)
 	cl_uint _device_bits;
+	/// Hint about the number of "preferred work group size multiple"
+	cl_uint _npwgs;
 	/// The compilation flags to be considered when calling clBuildProgram()
 	std::string _device_compile_flags;
 	/** @brief Flag to let the implementation know if it is the NVIDIA's

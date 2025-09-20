@@ -1390,6 +1390,7 @@ CalcServer::setupDevices()
 	}
 	LOG(L_INFO, std::string("Device bits = ") +
 	            std::to_string(_device_bits) + "bits\n");
+	_npwgs = _sim_data.settings.devices.at(rank).npwgs;
 	_device_compile_flags =
 		_sim_data.settings.devices.at(rank).compilation_flags;
 	LOG(L_INFO, std::string("Compilation flags = ") + _device_compile_flags +

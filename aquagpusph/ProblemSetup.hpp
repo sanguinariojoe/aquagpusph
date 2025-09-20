@@ -224,17 +224,21 @@ class DECLDIR ProblemSetup
 			 * @param t Type of OpenCL device
 			 * @param bits The address bits of the device. 0 to consider
 			 * CL_DEVICE_ADDRESS_BITS
+			 * @param npwgs_hint Number of "preferred work group size multiple"
+			 * @param compile_flags Compilation additional flags
 			 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetDeviceInfo.html
 			 */
 			device(const unsigned int platform_index,
 			       const unsigned int device_index,
 			       const cl_device_type t = CL_DEVICE_TYPE_ALL,
 			       const unsigned int bits = 32,
+			       const unsigned int npwgs_hint = 4,
 				   const std::string compile_flags = "")
 			  : platform_id(platform_index)
 			  , device_id(device_index)
 			  , device_type(t)
 			  , addr_bits(bits)
+			  , npwgs(npwgs_hint)
 			  , compilation_flags(compile_flags)
 			  , patches({{"nvidia_#4665567", patch_state::AUTO},
 			             {"nvidia_#9999999", patch_state::AUTO},
@@ -288,6 +292,20 @@ class DECLDIR ProblemSetup
 			 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetDeviceInfo.html
 			 */
 			unsigned int addr_bits;
+
+			/** @brief Hint for the preferred work group size.
+			 *
+			 * This hint sets the number of
+			 * "preferred work group size multiple" to consider, if possible.
+			 *
+			 * If not provided, 4 will be considered. This setting would allow
+			 * for some performance boosting. The number shall be large enough
+			 * to hide latency, but low enough to maximize occupancy
+			 *
+			 * This field can be set with the tag `Device`, for instance:
+			 * `<Device platform="0" device="0" type="GPU" npwgs="4" />`
+			 */
+			unsigned int npwgs;
 
 			/** @brief Extra flags considered by this device when compiling
 			 * kernels.

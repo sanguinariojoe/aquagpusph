@@ -535,11 +535,16 @@ State::parseSettings(DOMElement* root,
 			if (xmlHasAttribute(s_elem, "compile_flags")) {
 				compile_flags = xmlAttribute(s_elem, "compile_flags");
 			}
+			unsigned int npwgs = 4;
+			if (xmlHasAttribute(s_elem, "npwgs")) {
+				npwgs = std::stoi(xmlAttribute(s_elem, "npwgs"));
+			}
 			sim_data.settings.devices.push_back(
 				ProblemSetup::sphSettings::device(platform_id,
 				                                  device_id,
 				                                  device_type,
 				                                  addr_bits,
+				                                  npwgs,
 				                                  compile_flags));
 			std::vector<std::pair<
 				std::string,
