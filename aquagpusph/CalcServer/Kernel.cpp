@@ -497,6 +497,7 @@ Kernel::make(const std::string entry_point,
 	    std::string("Failure releasing non-local memory based kernel ") +
 	        "in tool \"" + name() + "\".");
 	_kernel = kernel;
+	_work_group_size = work_group_size;
 }
 
 bool
