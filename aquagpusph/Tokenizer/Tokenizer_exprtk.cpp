@@ -100,17 +100,30 @@ Tokenizer_exprtk::exprVariables(const std::string eq)
 	exprtk::parser<tokenizer_t> parser;
 	exprtk::expression<tokenizer_t> expr;
 
-	expr.register_symbol_table(vars);
-
+	// Create a copy of the symbols list that we will extend until no more
+	// undefined symbols are received
+	exprtk::symbol_table<tokenizer_t> vars_tmp(vars);
 	parser.dec().collect_variables() = true;
-
-	if (!parser.compile(eq, expr))
-	{
-		LOG(L_ERROR, std::string("Error parsing \"") + eq + "\":\n");
-		LOG0(L_DEBUG, "\n");
-		LOG0(L_DEBUG, parser.error() + "\n");
-		LOG0(L_DEBUG, "\n");
-		throw std::runtime_error("Invalid expression");
+	while(true) {
+		expr.register_symbol_table(vars_tmp);
+		if (!parser.compile(eq, expr))
+		{
+			if (hasPrefix(parser.error(), "ERR234")) {
+				auto var_name = replaceAllCopy(parser.error(),
+				                               "ERR234 - Undefined symbol: '",
+				                               "");
+				replaceAll(var_name, "'", "");
+				trim(var_name);
+				vars_tmp.create_variable(var_name, 0.f);
+				continue;
+			}
+			LOG(L_ERROR, std::string("Error parsing \"") + eq + "\":\n");
+			LOG0(L_DEBUG, "\n");
+			LOG0(L_DEBUG, parser.error() + "\n");
+			LOG0(L_DEBUG, "\n");
+			throw std::runtime_error("Invalid expression");
+		}
+		break;
 	}
 
 	std::deque<
