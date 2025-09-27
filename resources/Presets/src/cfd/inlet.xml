@@ -20,6 +20,9 @@ methods in fluids, 2009, 61.7: 709-724.
         <Variable name="j1" type="float*" length="N" symbol="J_1" />
         <Variable name="j2" type="float*" length="N" symbol="J_2" />
         <Variable name="j3" type="float*" length="N" symbol="J_3" />
+        <Variable name="j1_tmp" type="float*" length="N" symbol="J_1" />
+        <Variable name="j2_tmp" type="float*" length="N" symbol="J_2" />
+        <Variable name="j3_tmp" type="float*" length="N" symbol="J_3" />
     </Variables>
 
     <Tools>
@@ -31,6 +34,7 @@ methods in fluids, 2009, 61.7: 709-724.
         <Tool name="cfd inlet extrapolate" action="insert" after="cfd inlet characteristics" type="kernel" entry_point="extrapolate" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
         <Tool name="cfd inlet J1=0" action="insert" after="cfd inlet extrapolate" type="set" in="j1" value="0.f"/>
         <Tool name="cfd inlet J2=0" action="insert" after="cfd inlet extrapolate" type="set" in="j2" value="0.f"/>
-        <Tool name="cfd inlet set" action="insert" after="cfd inlet J1=0,cfd inlet J2=0" type="kernel" entry_point="values" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+        <Tool name="cfd inlet J3" action="insert" after="cfd inlet extrapolate" type="copy" in="j3_tmp" out="j3"/>
+        <Tool name="cfd inlet set" action="insert" after="cfd inlet J1=0,cfd inlet J2=0,cfd inlet J3" type="kernel" entry_point="values" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
     </Tools>
 </sphInput>

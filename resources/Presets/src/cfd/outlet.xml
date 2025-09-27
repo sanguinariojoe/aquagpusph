@@ -20,6 +20,9 @@ methods in fluids, 2009, 61.7: 709-724.
         <Variable name="j1" type="float*" length="N" symbol="J_1" />
         <Variable name="j2" type="float*" length="N" symbol="J_2" />
         <Variable name="j3" type="float*" length="N" symbol="J_3" />
+        <Variable name="j1_tmp" type="float*" length="N" symbol="J_1" />
+        <Variable name="j2_tmp" type="float*" length="N" symbol="J_2" />
+        <Variable name="j3_tmp" type="float*" length="N" symbol="J_3" />
     </Variables>
 
     <Tools>
@@ -29,6 +32,8 @@ methods in fluids, 2009, 61.7: 709-724.
         <Tool name="cfd outlet io_rFS" action="insert" after="cfd Shepard" type="set_scalar" in="io_rFS" value="outflow_rFS_x,outflow_rFS_y,outflow_rFS_z,outflow_rFS_w"/>
         <Tool name="cfd outlet characteristics" action="insert" after="cfd outlet io_r,cfd outlet io_n,cfd outlet io_U,cfd outlet io_rFS" type="kernel" entry_point="characteristics" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
         <Tool name="cfd outlet extrapolate" action="insert" after="cfd outlet characteristics" type="kernel" entry_point="extrapolate" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
+        <Tool name="cfd inlet J1" action="insert" after="cfd outlet extrapolate" type="copy" in="j1_tmp" out="j1"/>
+        <Tool name="cfd inlet J2" action="insert" after="cfd outlet extrapolate" type="copy" in="j2_tmp" out="j2"/>
         <Tool name="cfd outlet J3=0" action="insert" after="cfd outlet extrapolate" type="set" in="j3" value="0.f"/>
         <Tool name="cfd outlet set" action="insert" after="cfd outlet J3=0" type="kernel" entry_point="values" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
     </Tools>

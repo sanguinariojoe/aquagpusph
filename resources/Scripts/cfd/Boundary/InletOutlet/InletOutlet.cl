@@ -121,21 +121,25 @@ __kernel void characteristics(const __global int* restrict imove,
  * @param j1 First characteristic \f$ J_1 \f$.
  * @param j2 Second characteristic \f$ J_2 \f$.
  * @param j3 Third characteristic \f$ J_3 \f$.
+ * @param j1_tmp First characteristic (smoothed) \f$ J_1 \f$.
+ * @param j2_tmp Second characteristic (smoothed) \f$ J_2 \f$.
+ * @param j3_tmp Third characteristic (smoothed) \f$ J_3 \f$.
  * @param shepard Shepard renormalization factor \f$ \gamma \f$.
  * @param io_r Lower corner of the inlet/outlet square.
  * @param io_n = Velocity direction.
  * @param N Number of particles.
- * BUG: j1, j2, j3 cannot be written on the same place they are read. Otherwise
- * the smoothing process is corrupted
  */
 __kernel void extrapolate(const __global int* restrict imove,
                           const __global vec* restrict r,
                           const __global float* restrict rho,
                           const __global float* restrict m,
                           const __global svec2* restrict jhoc,
-                          __global float* restrict j1,
-                          __global float* restrict j2,
-                          __global float* restrict j3,
+                          const __global float* restrict j1,
+                          const __global float* restrict j2,
+                          const __global float* restrict j3,
+                          __global float* restrict j1_tmp,
+                          __global float* restrict j2_tmp,
+                          __global float* restrict j3_tmp,
                           __global float* restrict shepard,
                           const __constant float* restrict refd,
                           usize N,
@@ -185,9 +189,9 @@ __kernel void extrapolate(const __global int* restrict imove,
     }END_FOR_NEIGHS()
 
     const float div = __shepard > J_SHEPARD_LIMIT ? 1.f / __shepard : 1.f;
-    j1[i] = __j1 * div;
-    j2[i] = __j2 * div;
-    j3[i] = __j3 * div;
+    j1_tmp[i] = __j1 * div;
+    j2_tmp[i] = __j2 * div;
+    j3_tmp[i] = __j3 * div;
     shepard[i] = __shepard;
 }
 
