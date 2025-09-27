@@ -21,10 +21,6 @@
  * boundary condition.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -79,20 +75,8 @@ __kernel void entry(const __global int* restrict imove,
         return;
 
     const vec_xyz r_i = r_in[i].XYZ;
-
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _U_ u_i
-        #define _DUDT_ dudt[i].XYZ
-        vec_xyz u_i;
-    #else
-        #define _U_ u_i[it]
-        #define _DUDT_ dudt_l[it]
-        __local vec_xyz u_i[LOCAL_MEM_SIZE];
-        __local vec_xyz dudt_l[LOCAL_MEM_SIZE];
-        _DUDT_ = dudt[i].XYZ;
-    #endif
-    _U_ = u_in[i].XYZ + 0.5f * dt * _DUDT_;
+    __private vec_xyz __dudt = dudt[i].XYZ;
+    __private vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * __dudt;
 
     FOR_NEIGHS(N, jhoc){
         if (imove[j] != -3)
@@ -117,7 +101,7 @@ __kernel void entry(const __global int* restrict imove,
         }
 
         {
-            const float drn = dt * dot(_U_, n_j);
+            const float drn = dt * dot(u_i, n_j);
             if(drn < 0.f){
                 // The particle is already running away from the boundary
                 continue;
@@ -129,18 +113,16 @@ __kernel void entry(const __global int* restrict imove,
             if(rn - drn <= __MIN_BOUND_DIST__ * dr){
                 // Reflect the particle velocity, so its module remains
                 // constant
-                const vec_xyz u = u_in[i].XYZ + dt * _DUDT_;
+                const vec_xyz u = u_in[i].XYZ + dt * __dudt;
                 const vec_xyz u_r = u - 2.f * dot(u, n_j) * n_j;
                 // Modify the values for the next wall tests.
-                _DUDT_ = (u_r - u_in[i].XYZ) / dt;
-                _U_ = u_in[i].XYZ + 0.5f * dt * _DUDT_;
+                __dudt = (u_r - u_in[i].XYZ) / dt;
+                u_i = u_in[i].XYZ + 0.5f * dt * __dudt;
             }
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        dudt[i].XYZ = _DUDT_;
-    #endif
+    dudt[i].XYZ = __dudt;
 }
 
 /** @brief Compute the force of each fluid particle on the boundary due to the

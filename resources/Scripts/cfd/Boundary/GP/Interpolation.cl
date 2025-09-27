@@ -20,10 +20,6 @@
  * @brief Fixed ghost particles fields interpolation.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -79,26 +75,10 @@ __kernel void entry(const __global int* restrict imove,
     
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _RHO_ gp_rho[i]
-        #define _P_ gp_p[i]
-        #define _U_ gp_u[i].XYZ
-        #define _SHEPARD_ shepard[i]
-    #else
-        #define _RHO_ rho_l[it]
-        #define _P_ p_l[it]
-        #define _U_ u_l[it]
-        #define _SHEPARD_ shepard_l[it]
-        __local float rho_l[LOCAL_MEM_SIZE];
-        __local float p_l[LOCAL_MEM_SIZE];
-        __local vec_xyz u_l[LOCAL_MEM_SIZE];
-        __local float shepard_l[LOCAL_MEM_SIZE];
-        _RHO_ = 0.f;
-        _P_ = 0.f;
-        _U_ = VEC_ZERO.XYZ;
-    #endif
-    _SHEPARD_ = 0.f;
+    __private float __rho = 0.f;
+    __private float __p = 0.f;
+    __private vec_xyz __u = VEC_ZERO.XYZ;
+    __private float __shepard = 0.f;
 
     #undef C_I()
     #define C_I() const usize c_i = gp_icell[i]
@@ -123,18 +103,16 @@ __kernel void entry(const __global int* restrict imove,
 
             {
                 const float w_ij = kernelW(q) * CONW * m_j / rho_j;
-                _RHO_ += w_ij * rho_j;
-                _P_ += w_ij * p_j; 
-                _U_ += w_ij * u_j;
-                _SHEPARD_ += w_ij;
+                __rho += w_ij * rho_j;
+                __p += w_ij * p_j; 
+                __u += w_ij * u_j;
+                __shepard += w_ij;
             }
         }
     }END_LOOP_OVER_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        gp_rho[i] = _RHO_;
-        gp_p[i] = _P_;
-        gp_u[i].XYZ = _U_;
-        shepard[i] = _SHEPARD_;
-    #endif
+    gp_rho[i] = __rho;
+    gp_p[i] = __p;
+    gp_u[i].XYZ = __u;
+    shepard[i] = __shepard;
 }

@@ -20,10 +20,6 @@
  * @brief Boundary integral term for constant fields.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -62,18 +58,8 @@ __kernel void entry(const __global int* restrict imove,
 
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADW_ grad_w_bi[i].XYZ
-        #define _DIVU_ div_u_bi[i]
-    #else
-        #define _GRADW_ grad_w_bi_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz grad_w_bi_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-        _GRADW_ = VEC_ZERO.XYZ;
-        _DIVU_ = 0.f;
-    #endif
+    __private vec_xyz __grad_w = VEC_ZERO.XYZ;
+    __private float __div_u = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != -3)
@@ -88,15 +74,13 @@ __kernel void entry(const __global int* restrict imove,
             const vec_xyz u_j = u[j].XYZ;
             const float area_j = m[j];
             const vec_xyz grad_w = n_j.XYZ * (kernelW(q) * CONW * area_j);
-            _GRADW_ += grad_w;
-            _DIVU_ -= dot(u_j, grad_w);
+            __grad_w += grad_w;
+            __div_u -= dot(u_j, grad_w);
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        grad_w_bi[i].XYZ = _GRADW_;
-        div_u_bi[i] = _DIVU_;
-    #endif
+    grad_w_bi[i].XYZ = __grad_w;
+    div_u_bi[i] = __div_u;
 }
 
 /** @brief Compute the pressure on each boundary element.
@@ -128,14 +112,7 @@ __kernel void p_boundary(const __global int* restrict imove,
 
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _P_ p[i]
-    #else
-        #define _P_ p_l[it]
-        __local float p_l[LOCAL_MEM_SIZE];
-    #endif
-    _P_ = 0.f;
+    __private float __p = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != 1)
@@ -145,10 +122,8 @@ __kernel void p_boundary(const __global int* restrict imove,
         if(q >= SUPPORT)
             continue;
 
-        _P_ += 2.f * p[j] * kernelW(q) * CONW * m[j] / rho[j];
+        __p += 2.f * p[j] * kernelW(q) * CONW * m[j] / rho[j];
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        p[i] = _P_;
-    #endif
+    p[i] = __p;
 }

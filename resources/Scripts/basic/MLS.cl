@@ -72,14 +72,7 @@ __kernel void entry(const __global int* imove,
 
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _MLS_ mls[i]
-    #else
-        #define _MLS_ mls_l[it]
-        __local matrix mls_l[LOCAL_MEM_SIZE];
-    #endif
-    _MLS_ = MAT_ZERO;
+    __private matrix __mls = MAT_ZERO;
 
     FOR_NEIGHS(N, jhoc){
         if(i == j){
@@ -96,13 +89,11 @@ __kernel void entry(const __global int* imove,
         }
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
-            _MLS_ += outer(r_ij, f_ij * r_ij);
+            __mls += outer(r_ij, f_ij * r_ij);
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        mls[i] = _MLS_;
-    #endif
+    mls[i] = __mls;
 }
 
 /** @brief Invert the matrix computed in entry() to get the final MLS

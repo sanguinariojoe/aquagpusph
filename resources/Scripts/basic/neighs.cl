@@ -25,10 +25,6 @@
  * particle
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -117,23 +113,14 @@ __kernel void entry(const __global int* imove,
         return;
     }
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _NEIGHS_ n_neighs[i]
-    #else
-        #define _NEIGHS_ n_neighs_l[it]
-        __local uint n_neighs_l[LOCAL_MEM_SIZE];
-    #endif
-    _NEIGHS_ = 0;
+    __private uint __n_neighs = 0;
 
     for(unsigned int row = 0; row < NNC; row++) {
         const unsigned int jhoc_id = i + row * N;
-        _NEIGHS_ += jhoc[jhoc_id].y - jhoc[jhoc_id].x;
+        __n_neighs += jhoc[jhoc_id].y - jhoc[jhoc_id].x;
     }
 
-    #ifdef LOCAL_MEM_SIZE
-        n_neighs[i] = _NEIGHS_;
-    #endif
+    n_neighs[i] = __n_neighs;
 }
 
 /*

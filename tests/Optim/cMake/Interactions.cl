@@ -47,18 +47,8 @@ __kernel void legacy(const __global int* imove,
     const float p_i = p[i];
     const float rho_i = rho[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _DIVU_ div_u[i]
-    #else
-        #define _GRADP_ grad_p_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-    #endif
-    _GRADP_ = VEC_ZERO.XYZ;
-    _DIVU_ = 0.f;
+    __private vec_xyz __grad_p = VEC_ZERO.XYZ;
+    __private float __div_u = 0.f;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -83,15 +73,13 @@ __kernel void legacy(const __global int* imove,
             const float udr = dot(u[j].XYZ - u_i, r_ij);
             const float f_ij = kernelF(q) * CONF * m[j];
 
-            _GRADP_ += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
-            _DIVU_ += udr * f_ij * rho_i / rho_j;
+            __grad_p += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
+            __div_u += udr * f_ij * rho_i / rho_j;
         }
     }END_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ = _GRADP_;
-        div_u[i] = _DIVU_;
-    #endif
+    grad_p[i].XYZ = __grad_p;
+    div_u[i] = __div_u;
 }
 
 
@@ -119,18 +107,8 @@ __kernel void optim(const __global int* imove,
     const float p_i = p[i];
     const float rho_i = rho[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _DIVU_ div_u[i]
-    #else
-        #define _GRADP_ grad_p_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-    #endif
-    _GRADP_ = VEC_ZERO.XYZ;
-    _DIVU_ = 0.f;
+    __private vec_xyz __grad_p = VEC_ZERO.XYZ;
+    __private float __div_u = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if(i == j){
@@ -151,13 +129,11 @@ __kernel void optim(const __global int* imove,
             const float udr = dot(u[j].XYZ - u_i, r_ij);
             const float f_ij = kernelF(q) * CONF * m[j];
 
-            _GRADP_ += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
-            _DIVU_ += udr * f_ij * rho_i / rho_j;
+            __grad_p += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
+            __div_u += udr * f_ij * rho_i / rho_j;
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ = _GRADP_;
-        div_u[i] = _DIVU_;
-    #endif
+    grad_p[i].XYZ = __grad_p;
+    div_u[i] = __div_u;
 }

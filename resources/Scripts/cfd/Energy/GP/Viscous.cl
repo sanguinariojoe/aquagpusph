@@ -21,10 +21,6 @@
  * solid boundary in the fluid particles.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -89,14 +85,7 @@ __kernel void main(__global float* GP_energy_delapudt,
     const vec_xyz u_i = u[i].XYZ;
     const float visc_dyn_i = visc_dyn[iset[i]];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _E_LAPU_ GP_energy_delapudt[i]
-    #else
-        #define _E_LAPU_ delapudt_l[i]
-        __local float delapudt_l[LOCAL_MEM_SIZE];
-    #endif
-    _E_LAPU_ = 0.f;
+    __local float __elapu = 0.f;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -117,18 +106,14 @@ __kernel void main(__global float* GP_energy_delapudt,
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float r2 = (q * q + 0.01f) * H * H;
                 const float udr = dot(u[j].XYZ - u_i, r_ij);
-                _E_LAPU_ += dot(u_i, f_ij * __CLEARY__ * udr / r2 * r_ij);
+                __elapu += dot(u_i, f_ij * __CLEARY__ * udr / r2 * r_ij);
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _E_LAPU_ += dot(u_i, f_ij * 2.f * (u[j].XYZ - u_i));
+                __elapu += dot(u_i, f_ij * 2.f * (u[j].XYZ - u_i));
             #else
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
         }
     }END_NEIGHS()
 
-    _E_LAPU_ *= visc_dyn_i * m[i] / rho[i];
-
-    #ifdef LOCAL_MEM_SIZE
-        GP_energy_delapudt[i] = _E_LAPU_;
-    #endif
+    GP_energy_delapudt[i] = __elapu * visc_dyn_i * m[i] / rho[i];
 }

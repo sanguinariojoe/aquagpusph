@@ -20,10 +20,6 @@
  * @brief Boundary integral friction term.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -82,14 +78,7 @@ __kernel void entry(const __global uint* restrict iset,
     const vec_xyz u_i = u[i].XYZ;
     const float rho_i = rho[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _LAPU_ lap_u[i].XYZ
-    #else
-        #define _LAPU_ lap_u_l[it]
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
-        _LAPU_ = lap_u[i].XYZ;
-    #endif
+    __private vec_xyz __lap_u = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if((imove[j] != -3) || (iset[j] != noslip_iset))
@@ -108,18 +97,18 @@ __kernel void entry(const __global uint* restrict iset,
 
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float r2 = (q * q + 0.01f) * H * H;
-                _LAPU_ += __CLEARY__ * w_ij * dot(du, r_ij) / (r2 * rho_i) * n_j;
+                __lap_u += __CLEARY__ * w_ij * dot(du, r_ij) / (r2 * rho_i) * n_j;
             #endif
             #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
                 __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
                 const vec_xyz du_t = du - dot(du, n_j) * n_j;
-                _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
+                __lap_u += 2.f * w_ij / (rho_i * dr_n) * du_t;
             #endif
         }
     }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        lap_u[i].XYZ = _LAPU_;
+        lap_u[i].XYZ += __lap_u;
     #endif
 }

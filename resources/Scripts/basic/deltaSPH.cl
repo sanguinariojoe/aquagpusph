@@ -35,10 +35,6 @@
     #define EXCLUDED_PARTICLE(index) imove[index] <= 0
 #endif
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -109,14 +105,7 @@ __kernel void full(const __global int* restrict imove,
     const vec_xyz r_i = r[i].XYZ;
     const float p_i = p[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ lap_p_corr[i].XYZ
-    #else
-        #define _GRADP_ lap_p_corr_l[it]
-        __local vec_xyz lap_p_corr_l[LOCAL_MEM_SIZE];
-        _GRADP_ = VEC_ZERO.XYZ;
-    #endif
+    __private vec_xyz __lap_p = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if( (i == j) || (EXCLUDED_PARTICLE(j)))
@@ -128,12 +117,12 @@ __kernel void full(const __global int* restrict imove,
 
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
-            _GRADP_ += (p[j] - p_i) * f_ij * r_ij;
+            __lap_p += (p[j] - p_i) * f_ij * r_ij;
         }
     }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        lap_p_corr[i].XYZ = _GRADP_;
+        lap_p_corr[i].XYZ = __lap_p;
     #endif
 }
 
@@ -199,14 +188,7 @@ __kernel void lapp(const __global int* restrict imove,
     const vec_xyz r_i = r[i].XYZ;
     const float p_i = p[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _LAPP_ lap_p[i]
-    #else
-        #define _LAPP_ lap_p_l[it]
-        __local float lap_p_l[LOCAL_MEM_SIZE];
-        _LAPP_ = 0.f;
-    #endif
+    __private float __lap_p = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if( (i == j) || (EXCLUDED_PARTICLE(j)))
@@ -218,12 +200,12 @@ __kernel void lapp(const __global int* restrict imove,
 
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
-            _LAPP_ += (p[j] - p_i) * f_ij;
+            __lap_p += (p[j] - p_i) * f_ij;
         }
     }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        lap_p[i] = _LAPP_;
+        lap_p[i] = __lap_p;
     #endif
 }
 
@@ -262,14 +244,7 @@ __kernel void lapp_corr(const __global int* restrict imove,
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz gradp_i = lap_p_corr[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _LAPP_ lap_p[i]
-    #else
-        #define _LAPP_ lap_p_l[it]
-        __local float lap_p_l[LOCAL_MEM_SIZE];
-        _LAPP_ = lap_p[i];
-    #endif
+    __private float __lap_p = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if( (i == j) || (EXCLUDED_PARTICLE(j)))
@@ -282,13 +257,11 @@ __kernel void lapp_corr(const __global int* restrict imove,
         {
             const vec_xyz gradp_ij = lap_p_corr[j].XYZ + gradp_i;
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
-            _LAPP_ -= 0.5f * dot(gradp_ij, r_ij) * f_ij;
+            __lap_p -= 0.5f * dot(gradp_ij, r_ij) * f_ij;
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        lap_p[i] = _LAPP_;
-    #endif
+    lap_p[i] += __lap_p;
 }
 
 /** @brief Density variation rates delta-SPH term.

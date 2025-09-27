@@ -77,14 +77,7 @@ __kernel void full(const __global int* restrict imove,
     const vec_xyz r_i = r[i].XYZ;
     const float p_i = p[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ lap_p_corr[i].XYZ
-    #else
-        #define _GRADP_ lap_p_corr_l[it]
-        __local vec_xyz lap_p_corr_l[LOCAL_MEM_SIZE];
-        _GRADP_ = lap_p_corr[i].XYZ;
-    #endif
+    __private vec_xyz __lap_p = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if(!imirrored[j] || (imove[j] != 1))
@@ -96,12 +89,12 @@ __kernel void full(const __global int* restrict imove,
 
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
-            _GRADP_ += (p[j] - p_i) * f_ij * r_ij;
+            __lap_p += (p[j] - p_i) * f_ij * r_ij;
         }
     }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        lap_p_corr[i] = _GRADP_;
+        lap_p_corr[i] += __lap_p;
     #endif
 }
 

@@ -21,10 +21,6 @@
  * energy induced by a solid boundary in the fluid particles.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -87,18 +83,8 @@ __kernel void main(__global float* GP_energy_degradpdt,
     const float rho_i = rho[i];
     const float m_i = m[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _E_GRADP_ GP_energy_degradpdt[i]
-        #define _E_DIVU_ GP_energy_dedivudt[i]
-    #else
-        #define _E_GRADP_ degradpdt_l[i]
-        #define _E_DIVU_ dedivudt_l[i]
-        __local float degradpdt_l[LOCAL_MEM_SIZE];
-        __local float dedivudt_l[LOCAL_MEM_SIZE];
-    #endif
-    _E_GRADP_ = 0.f;
-    _E_DIVU_ = 0.f;
+    __local float __egradp = 0.f;
+    __local float __edivu = 0.f;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -117,16 +103,11 @@ __kernel void main(__global float* GP_energy_degradpdt,
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
 
-            _E_GRADP_ -= dot(u_i, (p_i + p[j]) * f_ij * r_ij);
-            _E_DIVU_ -= dot(u[j].XYZ - u_i, r_ij) * f_ij;
+            __egradp -= dot(u_i, (p_i + p[j]) * f_ij * r_ij);
+            __edivu -= dot(u[j].XYZ - u_i, r_ij) * f_ij;
         }
     }END_NEIGHS()
 
-    _E_GRADP_ *= m_i / rho_i;
-    _E_DIVU_ *= p_i * m_i / rho_i;
-
-    #ifdef LOCAL_MEM_SIZE
-        GP_energy_degradpdt[i] = _E_GRADP_;
-        GP_energy_dedivudt[i] = _E_DIVU_;
-    #endif
+    GP_energy_degradpdt[i] = __egradp * m_i / rho_i;
+    GP_energy_dedivudt[i] = __edivu * p_i * m_i / rho_i;
 }

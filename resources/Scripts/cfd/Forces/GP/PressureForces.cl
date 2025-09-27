@@ -20,10 +20,6 @@
  * @brief Tool to compute the fluid pressure force and moment.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -78,14 +74,7 @@ __kernel void entry(__global vec* restrict pressureForces_f,
     const vec_xyz r_i = r[i].XYZ;
     const float p_i = p[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _F_ pressureForces_f[i].XYZ
-    #else
-        #define _F_ f_l[it]
-        __local vec_xyz f_l[LOCAL_MEM_SIZE];
-    #endif
-    _F_ = VEC_ZERO.XYZ;
+    __private vec_xyz __f = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != 1)
@@ -96,22 +85,19 @@ __kernel void entry(__global vec* restrict pressureForces_f,
             continue;
 
         {
-            _F_ -= (p_i + p[j]) * kernelF(q) * CONF * m[j] / rho[j] * r_ij;
+            __f -= (p_i + p[j]) * kernelF(q) * CONF * m[j] / rho[j] * r_ij;
         }
     }END_FOR_NEIGHS()
 
-    _F_ *= m[i] / rho[i];
-
-    #ifdef LOCAL_MEM_SIZE
-        pressureForces_f[i].XYZ = _F_;
-    #endif
+    __f *= m[i] / rho[i];
+    pressureForces_f[i].XYZ = __f;
 
     const vec arm = r[i] - pressureForces_r;
-    pressureForces_m[i].z = arm.x * _F_.y - arm.y * _F_.x;
+    pressureForces_m[i].z = arm.x * __f.y - arm.y * __f.x;
     pressureForces_m[i].w = 0.f;
     #ifdef HAVE_3D
-        pressureForces_m[i].x = arm.y * _F_.z - arm.z * _F_.y;
-        pressureForces_m[i].y = arm.z * _F_.x - arm.x * _F_.z;
+        pressureForces_m[i].x = arm.y * __f.z - arm.z * __f.y;
+        pressureForces_m[i].y = arm.z * __f.x - arm.x * __f.z;
     #else
         pressureForces_m[i].x = 0.f;
         pressureForces_m[i].y = 0.f;

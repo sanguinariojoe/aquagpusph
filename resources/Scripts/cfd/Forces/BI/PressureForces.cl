@@ -20,12 +20,7 @@
  * @brief Tool to compute the fluid pressure force and moment.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
-#include "resources/Scripts/KernelFunctions/Kernel.h"
 
 /** @brief Tool to compute the pressure force and moment for an especific body.
  *

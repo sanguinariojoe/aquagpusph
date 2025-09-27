@@ -20,10 +20,6 @@
  * @brief MPI syncing point
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -345,14 +341,7 @@ __kernel void gamma(const __global int* imove,
 
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _SHEPARD_ shepard[i]
-    #else
-        #define _SHEPARD_ shepard_l[it]
-        __local float shepard_l[LOCAL_MEM_SIZE];
-        _SHEPARD_ = 0.f;
-    #endif
+    __private float __shepard = 0.f;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, mpi_icell, mpi_ihoc){
@@ -364,13 +353,11 @@ __kernel void gamma(const __global int* imove,
             continue;
         }
         {
-            _SHEPARD_ += kernelW(q) * CONW * mpi_m[j] / mpi_rho[j];
+            __shepard += kernelW(q) * CONW * mpi_m[j] / mpi_rho[j];
         }
     }END_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        shepard[i] += _SHEPARD_;
-    #endif
+    shepard[i] += __shepard;
 }
 
 /** @brief Fluid particles interactions with the neighbours from other
@@ -430,22 +417,9 @@ __kernel void interactions(const __global int* imove,
     const float p_i = p[i];
     const float rho_i = rho[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _LAPU_ lap_u[i].XYZ
-        #define _DIVU_ div_u[i]
-    #else
-        #define _GRADP_ grad_p_l[it]
-        #define _LAPU_ lap_u_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-        _GRADP_ = VEC_ZERO.XYZ;
-        _LAPU_ = VEC_ZERO.XYZ;
-        _DIVU_ = 0.f;
-    #endif
+    __private vec_xyz __grad_p = VEC_ZERO.XYZ;
+    __private vec_xyz __lap_u = VEC_ZERO.XYZ;
+    __private float __div_u = 0.f;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, mpi_icell, mpi_ihoc){
@@ -462,24 +436,22 @@ __kernel void interactions(const __global int* imove,
             const float udr = dot(mpi_u[j].XYZ - u_i, r_ij);
             const float f_ij = kernelF(q) * CONF * mpi_m[j];
 
-            _GRADP_ += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
+            __grad_p += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
 
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float r2 = (q * q + 0.01f) * H * H;
-                _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
+                __lap_u += f_ij * __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _LAPU_ += f_ij * 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
+                __lap_u += f_ij * 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
             #else
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
 
-            _DIVU_ += udr * f_ij * rho_i / rho_j;
+            __div_u += udr * f_ij * rho_i / rho_j;
         }
     }END_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ += _GRADP_;
-        lap_u[i].XYZ += _LAPU_;
-        div_u[i] += _DIVU_;
-    #endif
+    grad_p[i].XYZ += __grad_p;
+    lap_u[i].XYZ += __lap_u;
+    div_u[i] += __div_u;
 }

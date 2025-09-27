@@ -20,10 +20,6 @@
  * @brief Compute the Laplacian of the velocity at the boundary.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -72,14 +68,7 @@ __kernel void freeslip(const __global int* restrict imove,
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _LAPU_ lap_u[i].XYZ
-    #else
-        #define _LAPU_ lap_u_l[it]
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
-        _LAPU_ = VEC_ZERO.XYZ;
-    #endif
+    __private vec_xyz __lap_u = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if(i == j)
@@ -97,9 +86,9 @@ __kernel void freeslip(const __global int* restrict imove,
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float udr = dot(u[j].XYZ - u_i, r_ij);
                 const float r2 = (q * q + 0.01f) * H * H;
-                _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_j) * r_ij;
+                __lap_u += f_ij * __CLEARY__ * udr / (r2 * rho_j) * r_ij;
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _LAPU_ += f_ij * 2.f / rho_j * (u[j].XYZ - u_i);
+                __lap_u += f_ij * 2.f / rho_j * (u[j].XYZ - u_i);
             #else
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
@@ -107,6 +96,6 @@ __kernel void freeslip(const __global int* restrict imove,
     }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        lap_u[i].XYZ = _LAPU_;
+        lap_u[i].XYZ = __lap_u;
     #endif
 }

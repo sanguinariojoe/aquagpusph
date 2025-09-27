@@ -68,14 +68,7 @@ __kernel void entry(const __global uint* restrict iset,
     const vec_xyz u_i = u[i].XYZ;
     const float rho_i = rho[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _LAPU_ lap_u[i].XYZ
-    #else
-        #define _LAPU_ lap_u_l[it]
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
-        _LAPU_ = lap_u[i].XYZ;
-    #endif
+    __private vec_xyz __lap_u = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if((imove[j] != -3) || (iset[j] != noslip_iset))
@@ -93,13 +86,11 @@ __kernel void entry(const __global uint* restrict iset,
             const vec_xyz du = u[j].XYZ - u_i;
             const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
             const vec_xyz du_t = du - dot(du, n_j) * n_j;
-            _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
+            __lap_u += 2.f * w_ij / (rho_i * dr_n) * du_t;
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        lap_u[i].XYZ = _LAPU_;
-    #endif
+    lap_u[i].XYZ += __lap_u;
 }
 
 /** @brief Tool to compute the viscous force and moment for an especific body.
@@ -160,14 +151,7 @@ __kernel void force(const __global uint* restrict iset,
     const vec_xyz u_i = u[i].XYZ;
     const float area_i = m[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _F_ force_visc[i].XYZ
-    #else
-        #define _F_ f_l[it]
-        __local vec_xyz f_l[LOCAL_MEM_SIZE];
-    #endif
-    _F_ = VEC_ZERO.XYZ;
+    __private vec_xyz __f = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != 1)
@@ -187,13 +171,12 @@ __kernel void force(const __global uint* restrict iset,
             const float dr_n = max(fabs(dot(r_ij, n_i)), dr);
             const vec_xyz du_t = du - dot(du, n_i) * n_i;
     
-            _F_ += 2.f * visc_dyn_j * m_j * w_ij / (rho_j * dr_n) * du_t;
+            __f += 2.f * visc_dyn_j * m_j * w_ij / (rho_j * dr_n) * du_t;
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        force_visc[i].XYZ = _F_;
-    #endif
+    force_visc[i].XYZ = __f;
+
 }
 
 /** @brief Compute the force and torque at the boundary.

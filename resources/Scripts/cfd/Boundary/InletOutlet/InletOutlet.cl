@@ -28,10 +28,6 @@
  * which are defining INWARD_NORMAL_SIGN before
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #ifndef INWARD_NORMAL_SIGN
     #define INWARD_NORMAL_SIGN 1.f
 #endif
@@ -129,6 +125,8 @@ __kernel void characteristics(const __global int* restrict imove,
  * @param io_r Lower corner of the inlet/outlet square.
  * @param io_n = Velocity direction.
  * @param N Number of particles.
+ * BUG: j1, j2, j3 cannot be written on the same place they are read. Otherwise
+ * the smoothing process is corrupted
  */
 __kernel void extrapolate(const __global int* restrict imove,
                           const __global vec* restrict r,
@@ -157,26 +155,10 @@ __kernel void extrapolate(const __global int* restrict imove,
     if(dot(r_i - io_r.XYZ, INWARD_NORMAL_SIGN * io_n.XYZ) > 0.f)
         return;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _J1_ j1[i]
-        #define _J2_ j2[i]
-        #define _J3_ j3[i]
-        #define _S_ shepard[i]
-    #else
-        #define _J1_ j1_l[it]
-        #define _J2_ j2_l[it]
-        #define _J3_ j3_l[it]
-        #define _S_ shepard_l[it]
-        __local float j1_l[LOCAL_MEM_SIZE];
-        __local float j2_l[LOCAL_MEM_SIZE];
-        __local float j3_l[LOCAL_MEM_SIZE];
-        __local float shepard_l[LOCAL_MEM_SIZE];
-    #endif
-    _J1_ = 0.f;
-    _J2_ = 0.f;
-    _J3_ = 0.f;
-    _S_ = 0.f;
+    __private float __j1 = 0.f;
+    __private float __j2 = 0.f;
+    __private float __j3 = 0.f;
+    __private float __shepard = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != 1)
@@ -195,21 +177,18 @@ __kernel void extrapolate(const __global int* restrict imove,
         {
             const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
 
-            _S_ += w_ij;
-            _J1_ += j1[j] * w_ij;
-            _J2_ += j2[j] * w_ij;
-            _J3_ += j3[j] * w_ij;
+            __shepard += w_ij;
+            __j1 += j1[j] * w_ij;
+            __j2 += j2[j] * w_ij;
+            __j3 += j3[j] * w_ij;
         }
     }END_FOR_NEIGHS()
 
-    const float div = _S_ > J_SHEPARD_LIMIT ? 1.f / _S_ : 1.f;
-    j1[i] = _J1_ * div;
-    j2[i] = _J2_ * div;
-    j3[i] = _J3_ * div;
-    #ifdef LOCAL_MEM_SIZE
-        shepard[i] = _S_;
-    #endif
-
+    const float div = __shepard > J_SHEPARD_LIMIT ? 1.f / __shepard : 1.f;
+    j1[i] = __j1 * div;
+    j2[i] = __j2 * div;
+    j3[i] = __j3 * div;
+    shepard[i] = __shepard;
 }
 
 /** @brief Set the field values at the inlet

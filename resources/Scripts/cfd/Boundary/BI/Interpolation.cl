@@ -20,10 +20,6 @@
  * @brief Fluid particles interactions computation.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -71,14 +67,7 @@ __kernel void entry(const __global uint* restrict iset,
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz gradp_i = rho[i] * grad_p[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _P_ p[i]
-    #else
-        #define _P_ p_l[it]
-        __local float p_l[LOCAL_MEM_SIZE];
-    #endif
-    _P_ = 0.f;
+    __private float __p = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != 1)
@@ -89,11 +78,9 @@ __kernel void entry(const __global uint* restrict iset,
             continue;
         {
             const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
-            _P_ += (p[j] - dot(gradp_i, r_ij)) * w_ij;
+            __p += (p[j] - dot(gradp_i, r_ij)) * w_ij;
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        p[i] = _P_;
-    #endif
+    p[i] = __p;
 }

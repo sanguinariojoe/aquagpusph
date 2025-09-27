@@ -75,18 +75,8 @@ __kernel void entry(const __global uint* restrict iset,
     const float rho_i = rho[i];
     const float refd_i = refd[iset[i]];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _DIVU_ div_u[i]
-    #else
-        #define _GRADP_ grad_p_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-        _GRADP_ = grad_p[i].XYZ;
-        _DIVU_ = div_u[i];
-    #endif
+    __private vec_xyz __grad_p = VEC_ZERO.XYZ;
+    __private float __div_u = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != -3)
@@ -103,13 +93,11 @@ __kernel void entry(const __global uint* restrict iset,
             const vec_xyz du = u[j].XYZ - u_i;
             const float w_ij = kernelW(q) * CONW * area_j;
 
-            _GRADP_ += (p_i + p_j) / rho_i * w_ij * n_j;
-            _DIVU_ += rho_i * dot(du, n_j) * w_ij;
+            __grad_p += (p_i + p_j) / rho_i * w_ij * n_j;
+            __div_u += rho_i * dot(du, n_j) * w_ij;
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ = _GRADP_;
-        div_u[i] = _DIVU_;
-    #endif
+    grad_p[i].XYZ += __grad_p;
+    div_u[i] += __div_u;
 }

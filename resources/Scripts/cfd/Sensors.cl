@@ -73,22 +73,9 @@ __kernel void entry(const __global uint* restrict iset,
 
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _U_ u[i].XYZ
-        #define _RHO_ rho[i]
-        #define _P_ p[i]
-    #else
-        #define _U_ u_l[it]
-        #define _RHO_ rho_l[it]
-        #define _P_ p_l[it]
-        __local vec_xyz u_l[LOCAL_MEM_SIZE];
-        __local float rho_l[LOCAL_MEM_SIZE];
-        __local float p_l[LOCAL_MEM_SIZE];
-    #endif
-    _U_ = VEC_ZERO.XYZ;
-    _RHO_ = 0.f;
-    _P_ = 0.f;
+    __private vec_xyz __u = VEC_ZERO.XYZ;
+    __private float __rho = 0.f;
+    __private float __p = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if(i == j)
@@ -107,15 +94,13 @@ __kernel void entry(const __global uint* restrict iset,
             const vec_xyz u_j = u[j].XYZ;
             const float w_ij = kernelW(q) * CONW * m_j / rho_j;
 
-            _U_ += u_j * w_ij;
-            _RHO_ += rho_j * w_ij;
-            _P_ += p_j * w_ij;
+            __u += u_j * w_ij;
+            __rho += rho_j * w_ij;
+            __p += p_j * w_ij;
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        u[i].XYZ = _U_;
-        rho[i] = _RHO_;
-        p[i] = _P_;
-    #endif
+    u[i].XYZ = __u;
+    rho[i] = __rho;
+    p[i] = __p;
 }

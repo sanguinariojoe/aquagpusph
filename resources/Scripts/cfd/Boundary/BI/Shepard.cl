@@ -21,10 +21,6 @@
  * (See Aqua::CalcServer::Boundary::DeLeffe for details)
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -76,15 +72,7 @@ __kernel void compute(const __global int* restrict imove,
 
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _SHEPARD_ shepard[i]
-    #else
-        #define _SHEPARD_ shepard_l[it]
-        __local float shepard_l[LOCAL_MEM_SIZE];
-    #endif
-
-    _SHEPARD_ = 1.f;
+    __private float __shepard = 1.f;
     bool self_added = false;
 
     FOR_NEIGHS(N, jhoc){
@@ -95,7 +83,7 @@ __kernel void compute(const __global int* restrict imove,
             // Boundary element trying to interact with itself
             if(!self_added){
                 self_added = true;
-                _SHEPARD_ -= 0.5f;
+                __shepard -= 0.5f;
             }
             continue;
         }
@@ -123,7 +111,7 @@ __kernel void compute(const __global int* restrict imove,
                 const float dr = 0.55f * pow(area_j, 1.f / (DIMS - 1.f));
                 if ((r_t <= dr) && (r_b <= dr)) {
                     self_added = true;
-                    _SHEPARD_ -= 0.5f;
+                    __shepard -= 0.5f;
                 }
             }
             continue;
@@ -132,14 +120,12 @@ __kernel void compute(const __global int* restrict imove,
         {
             const float r_t = fabs(dot(r_ij, t_j));
             const float r_b = fabs(dot(r_ij, b_j));
-            _SHEPARD_ += r_n * CONW * kernelS_P(q) * area_j +
+            __shepard += r_n * CONW * kernelS_P(q) * area_j +
                          kernelS_D(fabs(r_n), r_t, r_b, area_j);
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        shepard[i] = _SHEPARD_;
-    #endif
+    shepard[i] = __shepard;
 }
 
 

@@ -20,10 +20,6 @@
  * @brief Tool to compute the fluid viscous force and moment.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -95,14 +91,7 @@ __kernel void entry(const __global uint* restrict iset,
     const float area_i = m[i];
     const float visc_dyn_i = visc_dyn[iset[i]];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _F_ viscousForces_f[i].XYZ
-    #else
-        #define _F_ f_l[it]
-        __local vec_xyz f_l[LOCAL_MEM_SIZE];
-    #endif
-    _F_ = VEC_ZERO.XYZ;
+    __private vec_xyz __f = VEC_ZERO.XYZ;
 
     FOR_NEIGHS(N, jhoc){
         if(imove[j] != 1)
@@ -120,22 +109,19 @@ __kernel void entry(const __global uint* restrict iset,
 
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float r2 = (q * q + 0.01f) * H * H;
-                _F_ += __CLEARY__ * m_j * w_ij * dot(du, r_ij) / (r2 * rho_j * gamma_j) * n_i;
+                __f += __CLEARY__ * m_j * w_ij * dot(du, r_ij) / (r2 * rho_j * gamma_j) * n_i;
             #endif
             #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
                 __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float dr_n = max(fabs(dot(r_ij, n_i)), dr);
                 const vec_xyz du_t = du - dot(du, n_i) * n_i;
-                _F_ += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
+                __f += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
             #endif
         }
     }END_FOR_NEIGHS()
 
-    _F_ *= visc_dyn_i;
-
-    #ifdef LOCAL_MEM_SIZE
-        viscousForces_f[i].XYZ = _F_;
-    #endif
+    __f *= visc_dyn_i;
+    viscousForces_f[i].XYZ = _F_;
 
     const vec_xyz arm = r_i - viscousForces_r;
     viscousForces_m[i].z = arm.x * _F_.y - arm.y * _F_.x;

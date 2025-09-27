@@ -24,10 +24,6 @@
  * @brief Shepard renormalization factor computation.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 
@@ -77,14 +73,7 @@ __kernel void entry(const __global int* restrict imove,
 
     const vec_xyz r_i = r[i].XYZ;
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _SHEPARD_ shepard[i]
-    #else
-        #define _SHEPARD_ shepard_l[it]
-        __local float shepard_l[LOCAL_MEM_SIZE];
-        _SHEPARD_ = shepard[i];
-    #endif
+    __private float __shepard = 0.f;
 
     FOR_NEIGHS(N, jhoc){
         if((imove[j] != 1) || (imirrored[j]))
@@ -100,7 +89,5 @@ __kernel void entry(const __global int* restrict imove,
         }
     }END_FOR_NEIGHS()
 
-    #ifdef LOCAL_MEM_SIZE
-        shepard[i] = _SHEPARD_;
-    #endif
+    shepard[i] += __shepard;
 }
