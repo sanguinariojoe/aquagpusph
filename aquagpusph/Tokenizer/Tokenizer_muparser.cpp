@@ -83,13 +83,28 @@ Tokenizer_muparser::Tokenizer_muparser()
 		lc->thousands_sep = "";
 	}
 
-	// Register a modulus operator
+	// Register a modulus operator and a not operator
 	p.DefineOprtChars("%");
 	p.DefineOprt("%", mod_operator, mu::prINFIX);
 	p.DefineInfixOprt("!", not_operator, 0);
 	q.DefineOprtChars("%");
 	q.DefineOprt("%", mod_operator, mu::prINFIX);
 	q.DefineInfixOprt("!", not_operator, 0);
+
+	// Register the C math constants
+	p.DefineConst("M_E", (mu::value_type)M_E);
+	p.DefineConst("M_LOG2E", (mu::value_type)M_LOG2E);
+	p.DefineConst("M_LOG10E", (mu::value_type)M_LOG10E);
+	p.DefineConst("M_LN2", (mu::value_type)M_LN2);
+	p.DefineConst("M_LN10", (mu::value_type)M_LN10);
+	p.DefineConst("M_PI", (mu::value_type)M_PI);
+	p.DefineConst("M_PI_2", (mu::value_type)M_PI_2);
+	p.DefineConst("M_PI_4", (mu::value_type)M_PI_4);
+	p.DefineConst("M_1_PI", (mu::value_type)M_1_PI);
+	p.DefineConst("M_2_PI", (mu::value_type)M_2_PI);
+	p.DefineConst("M_2_SQRTPI", (mu::value_type)M_2_SQRTPI);
+	p.DefineConst("M_SQRT2", (mu::value_type)M_SQRT2);
+	p.DefineConst("M_SQRT1_2", (mu::value_type)M_SQRT1_2);
 }
 
 Tokenizer_muparser::~Tokenizer_muparser()

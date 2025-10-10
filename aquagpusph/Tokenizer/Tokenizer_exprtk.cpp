@@ -68,12 +68,22 @@ Tokenizer_exprtk::Tokenizer_exprtk()
 	}
 
 	// Register the default constants
-	using namespace exprtk::details::numeric::details;
 	vars.add_constants();
-	const typename number_type<tokenizer_t>::type num_type;
-	static const tokenizer_t local_e = const_e_impl<tokenizer_t>(num_type);
-	vars.add_constant("e", local_e);
-
+	// Register the C math constants
+	using namespace exprtk::details::numeric;
+	vars.add_constant("M_E", (tokenizer_t)constant::e);
+	vars.add_constant("M_LOG2E", (tokenizer_t)M_LOG2E);
+	vars.add_constant("M_LOG10E", (tokenizer_t)M_LOG10E);
+	vars.add_constant("M_LN2", (tokenizer_t)constant::log2);
+	vars.add_constant("M_LN10", (tokenizer_t)M_LN10);
+	vars.add_constant("M_PI", (tokenizer_t)constant::pi);
+	vars.add_constant("M_PI_2", (tokenizer_t)constant::pi_2);
+	vars.add_constant("M_PI_4", (tokenizer_t)constant::pi_4);
+	vars.add_constant("M_1_PI", (tokenizer_t)constant::_1_pi);
+	vars.add_constant("M_2_PI", (tokenizer_t)constant::_2_pi);
+	vars.add_constant("M_2_SQRTPI", (tokenizer_t)M_2_SQRTPI);
+	vars.add_constant("M_SQRT2", (tokenizer_t)constant::sqrt2);
+	vars.add_constant("M_SQRT1_2", (tokenizer_t)M_SQRT1_2);
 }
 
 Tokenizer_exprtk::~Tokenizer_exprtk()
