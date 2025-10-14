@@ -166,10 +166,6 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 		CHECK_OCL_OR_THROW(err_code,
 			std::string("Failure creating the trigger for tool \"") +
 			name() + "\".");
-		err_code = clSetUserEventStatus(trigger, CL_COMPLETE);
-		CHECK_OCL_OR_THROW(err_code,
-			std::string("Failure completing the trigger for tool \"") +
-			name() + "\".");
 	}
 
 	// Now we create a user event that we will set as completed when we already
@@ -190,6 +186,16 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 	    err_code,
 	    std::string("Failure registering the solver callback in tool \"") +
 	        name() + "\".");
+	// NOTE: We are calling clSetUserEventStatus() after clSetEventCallback()
+	// to avoid a bug on ROCm
+	// (https://github.com/ROCm/rocm-systems/issues/1345 , reported on
+	// 2025/10/12)
+	if (!events.size()) {
+		err_code = clSetUserEventStatus(trigger, CL_COMPLETE);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure completing the trigger for tool \"") +
+			name() + "\".");
+	}
 
 	return _user_event;
 }
