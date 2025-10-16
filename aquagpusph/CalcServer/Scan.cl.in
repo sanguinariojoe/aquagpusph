@@ -1,0 +1,299 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ * @brief Scan OpenCL methods (Sengupta et al 2007)
+ *
+ * (See Aqua::CalcServer::Scan for details)
+ * @note The header CalcServer/Scan.hcl.in is automatically appended.
+ * @see https://www.cs.utexas.edu/~pingali/CS378/2008sp/papers/ScanPrimitives.pdf
+ */
+
+/** @brief Dummy flags initialization
+ * @param part Partials
+ * @param flag Flags
+ * @param n Length of the arrays
+ */
+__kernel void init(__global int* restrict part,
+                   __global int* restrict flag,
+                   const usize n)
+{
+	const usize gid = get_global_id(0);
+	if (gid > n)
+		return;
+
+	if (gid == 0) {
+		part[gid] = 1;
+		flag[gid] = 1;
+	} else {
+		part[gid] = 0;
+		flag[gid] = 0;
+	}
+}
+
+/** @brief Inplace upsweep (reduce)
+ * @param x Local array to reduce
+ * @param p Partial of @p x
+ * @param m Length of both arrays, @p x and @p p
+ * @note: @p m must be a power of two
+ */
+inline void sweep_up(__local T* restrict x,
+                     __local int* restrict p,
+                     const uint m)
+{
+	const uint tid = get_local_id(0);
+	const uint bi = (tid * 2) + 1;
+
+	const uint depth = 1 + (int)log2((float)m);
+	for (uint d = 0; d < depth; d++) {
+		barrier(CLK_LOCAL_MEM_FENCE);
+		uint mask = (0x1 << d) - 1;
+		if ((tid & mask) == mask) {
+			uint offset = (0x1 << d);
+			uint ai = bi - offset;
+			if (!p[bi]) {
+				x[bi] += x[ai];
+			}
+			p[bi] = p[bi] | p[ai];
+		}
+	}
+}
+
+/** @brief Inplace downsweep (reduce)
+ * @param x Local array to reduce
+ * @param p Partial of @p x
+ * @param f Flag of @p x
+ * @param m Length of all arrays, @p x, @p p and @p f
+ * @note: @p m must be a power of two
+ */
+inline void sweep_down(__local T* restrict x,
+                       __local int* restrict p,
+                       const __local int* restrict f,
+                       const uint m)
+{
+	const uint tid = get_local_id(0);
+	const uint bi = (tid * 2) + 1;
+
+	const uint depth = (int) log2((float)m);
+	for (int d = depth; d >= 0; d--) {
+		barrier(CLK_LOCAL_MEM_FENCE);
+		const uint mask = (0x1 << d) - 1;
+		if ((tid & mask) == mask) {
+			const uint offset = (0x1 << d);
+			const uint ai = bi - offset;
+			const T tmp = x[ai];
+			x[ai] = x[bi];
+			if (f[ai + 1]) {
+				x[bi] = 0;
+			} else if (p[ai]) {
+				x[bi] = tmp;
+			} else {
+				x[bi] += tmp;
+			}
+			p[ai] = 0;
+		}
+	}
+}
+
+/** @brief Inplace scan
+ * @param x Local array to reduce
+ * @param p Partial of @p x
+ * @param f Flag of @p x
+ * @param m Length of all arrays, @p x, @p p and @p f
+ * @note: @p m must be a power of two
+ */
+inline void scan(__local T* restrict x,
+                 __local int* restrict p,
+                 const __local int* restrict f,
+                 const uint m)
+{
+	const uint tid = get_local_id(0);
+	const uint lane1 = (tid * 2) + 1;
+	sweep_up(x, p, m);
+	if (lane1 == (m - 1)) {
+		x[lane1] = 0;
+	}
+	sweep_down(x, p, f, m);
+}
+
+/** @brief Inplace scan of a global array
+ * @param data Global array to reduce
+ * @param part Partial of @p data
+ * @param flag Flag of @p data
+ * @param x Local array to reduce
+ * @param p Partial of @p x
+ * @param f Flag of @p x
+ * @param n Length of global arrays, @p data, @p part and @p flag
+ * @note: @p n must be a smaller or equal than twice the work group size
+ */
+__kernel void scan_wrapper(__global T* restrict data,
+                           const __global int* restrict part,
+                           const __global int* restrict flag,
+                           __local T* restrict x,
+                           __local int* restrict p,
+                           __local int* restrict f,
+                           const uint n)
+{
+	const usize gid = get_global_id(0);
+	const usize lane0 = (gid * 2);
+	const usize lane1 = (gid * 2) + 1;
+	const uint m = 2 * get_local_size(0);
+
+	// load data into local arrays, padding with identity element
+	x[lane0] = lane0 < n ? data[lane0] : (T)(0);
+	x[lane1] = lane1 < n ? data[lane1] : (T)(0);
+	p[lane0] = lane0 < n ? part[lane0] : 0;
+	p[lane1] = lane1 < n ? part[lane1] : 0;
+	f[lane0] = lane0 < n ? flag[lane0] : 0;
+	f[lane1] = lane1 < n ? flag[lane1] : 0;
+
+	// inplace local scan
+	scan(x, p, f, m);
+
+	// store back to global data
+	if (lane0 < n)
+		data[lane0] = x[lane0];
+	if (lane1 < n)
+		data[lane1] = x[lane1];
+}
+
+/** @brief First stage of a multiblock segmented scan.
+ * @param data Global array to reduce
+ * @param part Partial of @p data
+ * @param flag Flag of @p data
+ * @param data_sum Last part of each segment on @p data
+ * @param part_sum Last part of each segment on @p part
+ * @param flag_sum Last part of each segment on @p flag
+ * @param x Local array to reduce
+ * @param p Partial of @p x
+ * @param f Flag of @p x
+ * @param n Length of global arrays, @p data, @p part and @p flag
+ */
+__kernel void sweep_up_subarrays(__global T* restrict data,
+                                 __global int* restrict part,
+                                 const __global int* restrict flag,
+                                 __global T* restrict data_sum,
+                                 __global int* restrict part_sum,
+                                 __global int* restrict flag_sum,
+                                 __local T* restrict x,
+                                 __local int* restrict p,
+                                 __local int* restrict f,
+                                 const uint n)
+{
+	const uint wgs = get_local_size(0);
+	const usize gid = get_global_id(0);
+	const usize lane0 = (2 * gid)  ;
+	const usize lane1 = (2 * gid) + 1;
+	const uint tid = get_local_id(0);
+	const uint local_lane0 = (2 * tid)  ;
+	const uint local_lane1 = (2 * tid) + 1;
+	const uint grpid = get_group_id(0);
+	const uint m = wgs * 2;
+	const uint k = get_num_groups(0);
+
+	// load into local data padding elements >= n with identity
+	x[local_lane0] = (lane0 < n) ? data[lane0] : (T)(0);
+	x[local_lane1] = (lane1 < n) ? data[lane1] : (T)(0);
+	p[local_lane0] = (lane0 < n) ? part[lane0] : 0;
+	p[local_lane1] = (lane1 < n) ? part[lane1] : 0;
+	f[local_lane0] = (lane0 < n) ? flag[lane0] : 0;
+	f[local_lane1] = (lane1 < n) ? flag[lane1] : 0;
+
+	// upsweep on each subarray
+	sweep_up(x, p, m);
+
+	// last workitem per workgroup stores 
+	//   - last element of each subarray in global [data_sum] and [part_sum]
+	if (tid == (wgs - 1)) {
+		data_sum[grpid] = x[local_lane1];
+		part_sum[grpid] = p[local_lane1];
+	}
+	// first workitem per workgroup stores 
+	//   - first element of each subarray in global [flag_sum]
+	if (tid == 0) {
+		flag_sum[grpid] = f[local_lane0];
+	}
+
+	// store back to global data
+	if (lane0 < n) {
+		data[lane0] = x[local_lane0];
+		part[lane0] = p[local_lane0];
+	}
+	if (lane1 < n) {
+		data[lane1] = x[local_lane1];
+		part[lane1] = p[local_lane1];
+	}
+}
+
+/** @brief Second stage of a multiblock segmented scan.
+ * @param data Global array to reduce
+ * @param part Partial of @p data
+ * @param flag Flag of @p data
+ * @param data_sum Last part of each segment on @p data
+ * @param part_sum Last part of each segment on @p part
+ * @param flag_sum Last part of each segment on @p flag
+ * @param x Local array to reduce
+ * @param p Partial of @p x
+ * @param f Flag of @p x
+ * @param n Length of global arrays, @p data, @p part and @p flag
+ */
+__kernel void sweep_down_subarrays(__global T* restrict data,
+                                   __global int* restrict part,
+                                   const __global int* restrict flag,
+                                   __global T* restrict data_sum,
+                                   __global int* restrict part_sum,
+                                   __global int* restrict flag_sum,
+                                   __local T* restrict x,
+                                   __local int* restrict p,
+                                   __local int* restrict f,
+                                   const uint n)
+{
+	const uint wgs = get_local_size(0);
+	const usize gid = get_global_id(0);
+	const usize lane0 = (2 * gid)  ;
+	const usize lane1 = (2 * gid) + 1;
+	const uint tid = get_local_id(0);
+	const uint local_lane0 = (2 * tid)  ;
+	const uint local_lane1 = (2 * tid) + 1;
+	const uint grpid = get_group_id(0);
+	const uint m = wgs * 2;
+	const uint k = get_num_groups(0);
+
+	// load into local data padding elements >= n with the last element
+	x[local_lane0] = (lane0 < n) ? data[lane0] : data[n - 1];
+	x[local_lane1] = (lane1 < n) ? data[lane1] : data[n - 1];
+	p[local_lane0] = (lane0 < n) ? part[lane0] : part[n - 1];
+	p[local_lane1] = (lane1 < n) ? part[lane1] : part[n - 1];
+	f[local_lane0] = (lane0 < n) ? flag[lane0] : flag[n - 1];
+	f[local_lane1] = (lane1 < n) ? flag[lane1] : flag[n - 1];
+ 
+	// fold partial results back
+	if (tid == (wgs - 1)) {
+		x[local_lane1] = data_sum[grpid];
+		p[local_lane1] = part_sum[grpid];
+		//               flag_sum not needed
+	}
+	// downsweep on each subarray
+	sweep_down(x, p, f, m);
+ 
+	// store back to global data
+	if (lane0 < n)
+		data[lane0] = x[local_lane0];
+	if (lane1 < n)
+		data[lane1] = x[local_lane1];
+}

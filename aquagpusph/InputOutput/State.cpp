@@ -1155,6 +1155,9 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 					throw std::runtime_error("Missing reduction operation");
 				}
 				tool->set("operation", xmlS(s_elem->getTextContent()));
+			} else if (!xmlAttribute(s_elem, "type").compare("scan")) {
+				for (auto attr : { "in" })
+					_toolAttr(tool, s_elem, attr);
 			} else if (!xmlAttribute(s_elem, "type").compare("link-list")) {
 				_toolAttr(tool, s_elem, "in", "r");
 				_toolAttr(tool, s_elem, "min", "r_min");
@@ -1251,6 +1254,7 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				LOG0(L_DEBUG, "\t\tset\n");
 				LOG0(L_DEBUG, "\t\tset_scalar\n");
 				LOG0(L_DEBUG, "\t\treduction\n");
+				LOG0(L_DEBUG, "\t\tscan\n");
 				LOG0(L_DEBUG, "\t\tlink-list\n");
 				LOG0(L_DEBUG, "\t\tradix-sort\n");
 				LOG0(L_DEBUG, "\t\tsort\n");

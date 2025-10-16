@@ -25,6 +25,7 @@ set(CPP_SRCS
     CalcServer/Python.cpp
     CalcServer/RadixSort.cpp
     CalcServer/Reduction.cpp
+    CalcServer/Scan.cpp
     CalcServer/Set.cpp
     CalcServer/SetScalar.cpp
     CalcServer/Sort.cpp
@@ -85,7 +86,7 @@ endif(nlohmann_json_FOUND)
 add_custom_target(opencl_embed_directory ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/)
 set(embed_targets "")
-foreach(FNAME LinkList MPISync RadixSort Reduction Set Sort UnSort)
+foreach(FNAME LinkList MPISync RadixSort Reduction Scan Set Sort UnSort)
     foreach(FEXT .cl .hcl)
         add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             COMMAND ${XXD_BIN} -i ${FNAME}${FEXT}.in > ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}

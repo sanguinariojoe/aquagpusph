@@ -46,6 +46,7 @@
 #include "RadixSort.hpp"
 #include "Sort.hpp"
 #include "Reduction.hpp"
+#include "Scan.hpp"
 #include "Set.hpp"
 #include "SetScalar.hpp"
 #include "UnSort.hpp"
@@ -307,6 +308,11 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                                t->get("operation"),
 			                                t->get("null"),
 			                                once);
+			_tools.push_back(tool);
+		} else if (!t->get("type").compare("scan")) {
+			Scan* tool = new Scan(t->get("name"),
+			                      t->get("in"),
+			                      once);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("link-list")) {
 			bool recompute_grid = false;
