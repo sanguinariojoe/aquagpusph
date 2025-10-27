@@ -73,6 +73,20 @@ class ScalarProfile : public Aqua::CalcServer::Profile
 class ScalarExpression : public Aqua::CalcServer::Tool
 {
   public:
+	/** @brief Possible types of expressions
+	 *
+	 * No matter the type of expression, it is safe to consider that the
+	 * ::_solve() function it is always called
+	 */
+	enum ExprType {
+		/// Constant value, that can be evaluated just once
+		CONSTANT,
+		/// A single variable, that does not need the math parser
+		VARIABLE,
+		/// An expression that requires a math parser
+		EXPRESSION
+	};
+
 	/** @brief Constructor.
 	 * @param name Tool name.
 	 * @param expr Expression to evaluate.
@@ -107,6 +121,11 @@ class ScalarExpression : public Aqua::CalcServer::Tool
 	 * @return The expression
 	 */
 	inline const std::string getExpression() const { return _value; }
+
+	/** @brief Get the expression to evaluate
+	 * @return The expression
+	 */
+	inline ExprType getExpressionType() const { return _value_type; }
 
 	/** @brief Get the stored output value
 	 * @return The output value memory
@@ -144,8 +163,9 @@ class ScalarExpression : public Aqua::CalcServer::Tool
 
 	/** @brief Evaluate the expression and store the value
 	 *
-	 * This function can be overloaded to extent the functionality. E.g. to
-	 * populate the output value on a variable
+	 * This function is always called, no matter the value of ::_value_type.
+	 * It can be hereby overloaded to extent the functionality. E.g. to
+	 * populate the output value on a variable.
 	 */
 	virtual void _solve();
 
@@ -156,12 +176,14 @@ class ScalarExpression : public Aqua::CalcServer::Tool
 
 	/// Expression to evaluate
 	std::string _value;
+	/// Type of expression
+	ExprType _value_type;
 
 	/// Input variables
 	std::vector<InputOutput::Variable*> _in_vars;
 	/// Output
 	void* _output;
-	/// Output size
+	/// Output type
 	std::string _output_type;
 
 	/// Convenient storage of the event to make easier to work with the

@@ -86,8 +86,8 @@ Set::setup()
 		throw std::bad_alloc();
 	}
 	try {
-		ScalarExpression::setup();
 		setOutputType(_var->type());
+		ScalarExpression::setup();
 		ScalarExpression::_solve();
 	} catch (...) {
 		free(_data);

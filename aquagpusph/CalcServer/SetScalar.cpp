@@ -35,6 +35,7 @@ ScalarExpression::ScalarExpression(const std::string name,
                                    bool once)
   : Tool(name, once)
   , _value(expr)
+  , _value_type(ScalarExpression::EXPRESSION)
   , _output(NULL)
   , _output_type(type)
 {
@@ -134,6 +135,19 @@ solver(cl_event event, cl_int event_command_status, void* user_data)
 void
 ScalarExpression::_solve()
 {
+	if(getExpressionType() == ScalarExpression::CONSTANT) {
+		// Nothing to do, we already evaluated the expression so we know the
+		// value
+		return;
+	}
+
+	if(getExpressionType() == ScalarExpression::VARIABLE) {
+		// We can directly get the variable value, which is faster than calling
+		// the math parser
+		memcpy(_output, _in_vars[0]->get_async(), _in_vars[0]->typesize());
+		return;
+	}
+
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
 	try {
 		vars->solve(getOutputType(), getExpression(), _output, "__NONE");
@@ -148,6 +162,25 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 	cl_int err_code;
 	cl_event trigger;
 	CalcServer* C = CalcServer::singleton();
+
+	// We create a user event that we will set as completed when we already
+	// solved the equation and set the varaible value
+	auto event = clCreateUserEvent(C->context(), &err_code);
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure creating the event for tool \"") +
+	                       name() + "\".");
+	_user_event = event;
+
+	if(getExpressionType() == ScalarExpression::CONSTANT) {
+		// If the expression is constant, we can directly proceed to call 
+		// _solve() and set the event as completed
+		_solve();
+		err_code = clSetUserEventStatus(event, CL_COMPLETE);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure completing the user evnet for tool \"") +
+			name() + "\".");
+		return event;
+	}
 
 	// We create a trigger event to be marked as completed when all the
 	// dependencies are fullfiled.
@@ -167,14 +200,6 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 			std::string("Failure creating the trigger for tool \"") +
 			name() + "\".");
 	}
-
-	// Now we create a user event that we will set as completed when we already
-	// solved the equation and set the varaible value
-	auto event = clCreateUserEvent(C->context(), &err_code);
-	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure creating the event for tool \"") +
-	                       name() + "\".");
-	_user_event = event;
 
 	// So it is time to register our callback on our trigger
 	err_code = clRetainEvent(event);
@@ -206,6 +231,18 @@ ScalarExpression::variables()
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
 	_in_vars = vars->exprVariables(_value);
 	setInputDependencies(_in_vars);
+
+	// Discriminate the type of expression received
+	if(_in_vars.size() == 0) {
+		// Since this is constant, we can ask to solve it right now (as a
+		// ScalarExpression::EXPRESSION) and keep the result for subsequent
+		// calls
+		_solve();
+		_value_type = ScalarExpression::CONSTANT;
+	} else if ((_in_vars.size() == 1) &&
+		       (trimCopy(_in_vars[0]->name()) == trimCopy(_value))) {
+		_value_type = ScalarExpression::VARIABLE;
+	}
 }
 
 // We start setting the outpu variable type as float, and modify it later
@@ -224,7 +261,6 @@ SetScalar::~SetScalar() {}
 void
 SetScalar::setup()
 {
-	ScalarExpression::setup();
 	_var = variable(_var_name);
 	if (!_var) {
 		std::stringstream msg;
@@ -234,6 +270,7 @@ SetScalar::setup()
 		throw std::invalid_argument("Invalid variable");
 	}
 	setOutputType(_var->type());
+	ScalarExpression::setup();
 	std::vector<InputOutput::Variable*> out_vars{ _var };
 	setOutputDependencies(out_vars);
 }
