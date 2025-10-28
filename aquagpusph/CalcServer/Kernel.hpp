@@ -363,6 +363,9 @@ class Kernel : public Aqua::CalcServer::Tool
 	/// Number of threads expression
 	std::string _n;
 
+	/// List of variables required to evaluate the number of threads
+	std::vector<InputOutput::Variable*> _n_vars;
+
 	/// OpenCL kernel
 	cl_kernel _kernel;
 

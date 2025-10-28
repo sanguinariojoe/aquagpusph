@@ -327,6 +327,25 @@ Kernel::_execute(const std::vector<cl_event> events)
 	cl_int err_code;
 	auto C = CalcServer::singleton();
 
+	if ((_n != "") && _n_vars.size()) {
+		// Recompute the global-work-size.
+		// NOTE: If the kernel considers arrays with changing lengths, those
+		// are not automatically updated. Users shall explicitely set the
+		// number of threads on those cases
+		std::vector<cl_event> n_wait_events;
+		for (auto var : _n_vars) {
+			n_wait_events.push_back(var->getWritingEvent());
+		}
+		if (n_wait_events.size()) {
+			err_code = clWaitForEvents(n_wait_events.size(),
+			                           n_wait_events.data());
+			CHECK_OCL_OR_THROW(err_code,
+				std::string("Failure waiting for the events to evaluate ") +
+					" the global-work-size in tool \"" + name() + "\".");
+		}
+		computeGlobalWorkSize();
+	}
+
 	// Asynchronously set the kernel arguments
 	_args_setter->execute();
 
@@ -589,6 +608,10 @@ Kernel::variables()
 		else
 			out_vars.push_back(var);
 		_vars.push_back(var);
+	}
+
+	if (_n != "") {
+		_n_vars = vars->exprVariables(_n);
 	}
 
 	setDependencies(in_vars, out_vars);
