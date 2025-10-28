@@ -1144,6 +1144,10 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 			} else if (!xmlAttribute(s_elem, "type").compare("set_scalar")) {
 				for (auto attr : { "in", "value" })
 					_toolAttr(tool, s_elem, attr);
+			} else if (!xmlAttribute(s_elem, "type").compare("resize")) {
+				for (auto attr : { "in", "length" })
+					_toolAttr(tool, s_elem, attr);
+				_toolAttr(tool, s_elem, "shrink", "false");
 			} else if (!xmlAttribute(s_elem, "type").compare("reduction")) {
 				for (auto attr : { "in", "out", "null" })
 					_toolAttr(tool, s_elem, attr);
@@ -1253,6 +1257,7 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				LOG0(L_DEBUG, "\t\tpython\n");
 				LOG0(L_DEBUG, "\t\tset\n");
 				LOG0(L_DEBUG, "\t\tset_scalar\n");
+				LOG0(L_DEBUG, "\t\tresize\n");
 				LOG0(L_DEBUG, "\t\treduction\n");
 				LOG0(L_DEBUG, "\t\tscan\n");
 				LOG0(L_DEBUG, "\t\tlink-list\n");

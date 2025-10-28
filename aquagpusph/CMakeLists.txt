@@ -25,6 +25,7 @@ set(CPP_SRCS
     CalcServer/Python.cpp
     CalcServer/RadixSort.cpp
     CalcServer/Reduction.cpp
+    CalcServer/Resize.cpp
     CalcServer/Scan.cpp
     CalcServer/Set.cpp
     CalcServer/SetScalar.cpp

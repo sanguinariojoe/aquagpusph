@@ -260,15 +260,14 @@ LinkList::allocate()
 	}
 	mem = NULL;
 
-	const size_t ihoc_t_size = ihoc_var->typesize();
 	mem = clCreateBuffer(C->context(),
 	                     CL_MEM_READ_WRITE,
-	                     _n_cells.w * ihoc_t_size,
+	                     _n_cells.w * tsize,
 	                     NULL,
 	                     &err_code);
 	CHECK_OCL_OR_THROW(err_code,
 		std::string("Failure allocating ") +
-		std::to_string(_n_cells.w * ihoc_t_size) +
+		std::to_string(_n_cells.w * tsize) +
 		" bytes on the device memory for tool \"" + name() + "\".");
 	ihoc_var->set_async(&mem);
 }

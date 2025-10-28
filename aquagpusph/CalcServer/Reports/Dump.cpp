@@ -208,13 +208,13 @@ Dump::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 
 	size_t n = 0;
 	cl_int err_code;
-	CalcServer* C = CalcServer::singleton();
 
 	// Get the data to be printed
 	std::vector<InputOutput::Variable*> vars = variables();
 	if (_data.size() < vars.size())
 		_data.resize(vars.size(), NULL);
 	for (auto var : vars) {
+
 		if (var->type().find('*') == std::string::npos) {
 			std::stringstream msg;
 			msg << "The dump report \"" << name()
@@ -223,7 +223,14 @@ Dump::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 			LOG(L_ERROR, msg.str());
 			throw std::runtime_error("Invalid variable type");
 		}
-		size_t typesize = C->variables()->typeToBytes(var->type());
+
+		// If the variable is reallocatable we must sync so we get the correct
+		// size
+		if (((InputOutput::ArrayVariable*)var)->reallocatable())
+			var->sync();
+
+		const size_t typesize = InputOutput::Variables::typeToBytes(
+			var->type());
 		size_t len = var->size() / typesize;
 		if (!len) {
 			std::stringstream msg;
@@ -244,6 +251,7 @@ Dump::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 			throw std::runtime_error("Invalid variable length");
 		}
 	}
+
 	if (n > _n) {
 		for (auto d : _data) {
 			if (d)

@@ -129,7 +129,7 @@ Set::_execute(const std::vector<cl_event> events)
 	    std::string("Failure flushing the command queue at \"") + name() +
 	        "\".");
 	for (auto event : in_events) {
-		// Retain the event until we work with it
+		// Release the events retained by getEvents()
 		err_code = clReleaseEvent(event);
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure releasing an event in \"") +

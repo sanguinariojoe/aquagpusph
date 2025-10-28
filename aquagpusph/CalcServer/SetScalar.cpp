@@ -237,7 +237,7 @@ ScalarExpression::variables()
 		// Since this is constant, we can ask to solve it right now (as a
 		// ScalarExpression::EXPRESSION) and keep the result for subsequent
 		// calls
-		_solve();
+		ScalarExpression::_solve();
 		_value_type = ScalarExpression::CONSTANT;
 	} else if ((_in_vars.size() == 1) &&
 		       (trimCopy(_in_vars[0]->name()) == trimCopy(_value))) {

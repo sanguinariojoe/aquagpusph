@@ -1137,7 +1137,7 @@ Variables::typeToBytes(const std::string type)
 		type_size = sizeof(fcl);
 	} else {
 		std::ostringstream msg;
-		msg << "Unvalid type \"" << type << "\"" << std::endl;
+		msg << "Invalid type \"" << type << "\"" << std::endl;
 		LOG(L_ERROR, msg.str());
 		return 0;
 	}

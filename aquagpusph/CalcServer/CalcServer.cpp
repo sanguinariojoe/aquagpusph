@@ -44,8 +44,9 @@
 #include "LinkList.hpp"
 #include "Python.hpp"
 #include "RadixSort.hpp"
-#include "Sort.hpp"
 #include "Reduction.hpp"
+#include "Resize.hpp"
+#include "Sort.hpp"
 #include "Scan.hpp"
 #include "Set.hpp"
 #include "SetScalar.hpp"
@@ -300,6 +301,18 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 		} else if (!t->get("type").compare("set_scalar")) {
 			SetScalar* tool = new SetScalar(
 			    t->get("name"), t->get("in"), t->get("value"), once);
+			_tools.push_back(tool);
+		} else if (!t->get("type").compare("resize")) {
+			bool shrink = false;
+			if (!toLowerCopy(t->get("shrink")).compare("true")) {
+				shrink = true;
+			}
+			Resize* tool =
+			    new Resize(t->get("name"),
+				           t->get("in"),
+				           t->get("length"),
+				           shrink,
+				           once);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("reduction")) {
 			Reduction* tool = new Reduction(t->get("name"),
