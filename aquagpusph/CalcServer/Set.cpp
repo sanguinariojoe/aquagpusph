@@ -135,6 +135,20 @@ Set::_execute(const std::vector<cl_event> events)
 		                   std::string("Failure releasing an event in \"") +
 		                       name() + "\" tool.");
 	}
+
+	if (_var->reallocatable()) {
+		const size_t typesize = InputOutput::Variables::typeToBytes(
+			_var->type());
+		_var->sync(true);
+		_n = _var->size() / typesize;
+		_global_work_size = roundUp<size_t>(_n, _work_group_size);
+		err_code = C->setKernelSizeArg(_kernel, 1, _n);
+		CHECK_OCL_OR_THROW(
+			err_code,
+			std::string("Failure sending the array size argument to tool \"") +
+				name() + "\".");
+	}
+
 	err_code = clWaitForEvents(1, &args_event);
 	CHECK_OCL_OR_THROW(
 	    err_code,
