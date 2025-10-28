@@ -227,7 +227,7 @@ Dump::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 		// If the variable is reallocatable we must sync so we get the correct
 		// size
 		if (((InputOutput::ArrayVariable*)var)->reallocatable())
-			var->sync();
+			var->sync(true);
 
 		const size_t typesize = InputOutput::Variables::typeToBytes(
 			var->type());
