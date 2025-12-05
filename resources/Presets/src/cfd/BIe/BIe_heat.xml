@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+
+<!-- BIe.xml
+Allows the usage of conservative boundary integrals to enforce a solid boundary
+condition. Adds the part of the heat transmission in the boundary frontier.
+
+Remarks:
+  - This file should be included once.
+  - For the boundary integrals, it is intended that the boundary elements have
+    the flag imove = -3, and a unit normal. Also the area of the elements
+    should be stored in the mass array "m".
+-->
+
+<sphInput>
+    <Tools>
+        <Tool name="cfd BIe compression integral" action="insert" after="cfd BIe rates" type="kernel" path="../../../Scripts/cfd/Boundary/BIe/Heat_integral.cl"/>
+    </Tools>
+</sphInput>

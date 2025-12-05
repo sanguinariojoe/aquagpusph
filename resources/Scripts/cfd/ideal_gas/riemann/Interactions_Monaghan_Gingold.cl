@@ -128,7 +128,7 @@ entry(const __global unsigned int* iset,
 		}
 		{
 			const float rho_j = rho[j];
-			const vec_xyz u_j = u[j];
+			const vec_xyz u_j = u[j].XYZ;
 			const float p_j = p[j];
 			const float m_j = m[j];
 			const float gamma_j = gamma[iset[j]];
