@@ -21,7 +21,8 @@
  * (See Aqua::Tokenizer for details)
  */
 
-// #include <matheval.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #include "Tokenizer_muparser.hpp"
 #include <cstdint>
