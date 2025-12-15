@@ -39,7 +39,7 @@ Authors:
     <Include file="resources/Presets/cfd/deltaSPH-full.xml" />-->
     <Include file="resources/Presets/cfd/BIe.xml" />
     <Include file="resources/Presets/cfd/BIe/Force.xml" /> 
-    <Include file="resources/Presets/cfd/BIe/BIe_energy.xml" />
+    <Include file="resources/Presets/cfd/BIe/Energy.xml" />
     <!--<Include file="resources/Presets/cfd/BIe/disableElasticBounce.xml" />-->
     <Include file="resources/Presets/cfd/BIe/disablePST.xml" />
 
