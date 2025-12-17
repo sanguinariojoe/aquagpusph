@@ -90,7 +90,6 @@ jobs:
         patch=`cat CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}'`
         echo "aquagpusph_version=$major.$minor.$patch" >> $GITHUB_OUTPUT
 
-
     - name: Create 3rd parties vendored folder
       run: |
           mkdir -p ${{github.workspace}}/vendor
@@ -290,6 +289,15 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Setup NSIS
+      run: |
+        iwr -useb get.scoop.sh -outfile 'install.ps1'
+        .\install.ps1 -RunAsAdmin
+        scoop update
+        scoop bucket add extras
+        scoop install nsis
+        Add-Content $env:GITHUB_PATH "C:\Users\runneradmin\scoop\shims\"
 
     - name: Create Installer
       working-directory: ${{github.workspace}}/build
