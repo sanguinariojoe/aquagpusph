@@ -45,7 +45,7 @@ __kernel void entry(const __global int* restrict imove,
                     const __global float* restrict rho,             
                     const __global float* restrict T,
                     const __global float* restrict lambda,   
-                    __global float* restrict work_density,
+                    __global float* restrict rhs_qdot,
                     usize N)
 {
 
@@ -84,5 +84,5 @@ __kernel void entry(const __global int* restrict imove,
         }
     }END_FOR_NEIGHS()
 
-    work_density[i] += __temp_fact / rho[i];
+    rhs_qdot[i] -= __temp_fact / rho[i];
     }
