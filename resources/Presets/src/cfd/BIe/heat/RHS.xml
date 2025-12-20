@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<!-- BIe.xml
+Allows the usage of conservative boundary integrals to enforce a solid boundary
+condition. Adds the part of the heat transmission in the boundary frontier
+used on the heat transfer module.
+
+See cfd/heat/RHS.xml
+-->
+
+<sphInput>
+    <Tools>
+        <Tool name="cfd BIe heat" action="insert" after="cfd BIe rates" type="kernel" path="../../../../Scripts/cfd/Boundary/BIe/heat/rhs.cl"/>
+    </Tools>
+</sphInput>

@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<!-- riemann.xml
+Allows the usage of conservative boundary integrals to enforce a solid boundary
+condition. Adds the part of the work of compression in the boundary frontier
+used on the Riemann solvers.
+
+See cfd/ideal_gas/riemann.xml
+-->
+
+<sphInput>
+    <Tools>
+        <Tool name="cfd BIe compression integral" action="insert" after="cfd BIe rates" type="kernel" path="../../../../Scripts/cfd/Boundary/BIe/ideal_gas/work_density.cl"/>
+    </Tools>
+</sphInput>
