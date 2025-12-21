@@ -108,7 +108,7 @@ def update(frame_index):
         # Stack the values according to its own iteration
         r = []
         for i in range(len(data[0])):
-            it = int(data[1][i])
+            it = int(data[1][i]) - 1
             if len(r) < it + 1:
                 r.append([])
             r[it].append(data[-1][i])
