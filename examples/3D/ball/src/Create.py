@@ -37,131 +37,133 @@ sys.path.append(os.path.join(script_folder, "../../"))
 import aqua_example_utils as utils
 
 import numpy as np
-import trimesh
+
 import meshio
 import platform
 import math
 
+# Constants & conditions
+# ========================
 
 g = 0.0
 hfac = 2.0
-dr = 0.1
+dr = 0.004
 
-refd = 1.0
+#refd = 1.0
 alpha = 0.0
 delta = 1.0
 visc_dyn = 0.0
 
 courant = 0.25
-R = 0.5
-
 
 gamma = 1.4
 
-p1 = 10.0e5
-p2 = 1.0e5
-
+p1 = 1.0e5
 rho1 = 1.0
-rho2 = 1.0
-
 c1 = math.sqrt(gamma * p1 / rho1)
-c2 = math.sqrt(gamma * p2 / rho2)
+M1=1.5
+v1=c1*M1
+u1=0.0
 
-cs = max(c1, c2)
+p2=2.45*p1
+rho2=1.86*rho1
+c2 = math.sqrt(gamma * p2 / rho2)
+M2=0.70
+v2=c2*M2
+u2=v1-v2
 
 e1 = p1 / ((gamma - 1.0) * rho1)
 e2 = p2 / ((gamma - 1.0) * rho2)
 
-t_max = 150 * R / cs
+cs = max(c1, c2)
+
+t_max=1.5e-3
+
+rhop=89.4
+
+L = 0.6
+B = 0.08
+H = 0.08
+R = 0.019
+
+sep = 2.0
+h = hfac * dr
+Lext = L
+
+TO_METERS = 1.e-3
+IN_POINT = [0, 0, 0]
+
+# Read the surface mesh file and create the boundary particles
+# ============================================================
 
 
-# Read the mesh files and create the particles and XML input files
-# ================================================================
-files = [f for f in os.listdir(script_folder) if os.path.isfile(
-    os.path.join(script_folder, f))]
-files = sorted(
-    [f for f in files if f.startswith('rock.') and f.endswith('.stl')])
-files = sorted(
-    [f for f in files if not f.endswith('subdivided.stl')])
-n_rocks = len(files)
-meshes = []
 xml_files = []
 prefixes = []
-bbox = np.array([[np.finfo(np.float64).max,
-                  np.finfo(np.float64).max,
-                  np.finfo(np.float64).max],
-                 [np.finfo(np.float64).min,
-                  np.finfo(np.float64).min,
-                  np.finfo(np.float64).min]])
-for i, f in enumerate(files):
-    fout = f[:-4] + ".subdivided.stl"
-    mesh = trimesh.load(os.path.join(script_folder, f))
-    meshes.append(mesh)
-    new_v, new_f = trimesh.remesh.subdivide_to_size(mesh.vertices,
-                                                    mesh.faces,
-                                                    dr)
-    mesh = trimesh.Trimesh(vertices=new_v, faces=new_f)
-    mesh.export(fout)
-    mesh = meshio.read(os.path.join(script_folder, fout))
-    fout = f[:-4] + ".dat"
-    print(f"Writing {fout}...")
-    output = open(f"{fout}", "w")
-    output.write("# r.x, r.y, r.z, r.w")
-    output.write(", normal.x, normal.y, normal.z, normal.w")
-    output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
-    output.write(", u.x, u.y, u.z, u.w")
-    output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
-    output.write(", rho, drhodt, e, dedt, m, imove\n")
-    n_parts = 0
-    verts = mesh.points
-    for cell in mesh.cells:
-        def triangle(cell, verts):
-            a, b, c = [verts[i] for i in cell]
-            r = np.mean([a, b, c], axis=0)
-            t = b - a
-            n = np.cross(b - a, c - a)
-            s = 0.5 * np.linalg.norm(n)
-            t /= np.linalg.norm(t)
-            n /= 2.0 * s
-            n = -n  # Inwards normals
-            return r, n, t, s
 
-        for elem in cell.data:
-            r, n, t, s = triangle(elem, verts)
-            bbox[0] = np.min((bbox[0], r), axis=0)
-            bbox[1] = np.max((bbox[1], r), axis=0)
-            dens = refd
-            imove = -3
-            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-                r[0], r[1], r[2],
-                n[0], n[1], n[2],
-                t[0], t[1], t[2],
-                0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0,
-                rho2,
-                0.0,
-                e2,
-                0.0,
-                s,
-                imove)
+print("Parsing the shell...")
+mesh = meshio.read("ball_mm-shell.msh")
+verts = mesh.points
+output = open("Surface.dat", "w")
+output.write("# r.x, r.y, r.z, r.w")
+output.write(", normal.x, normal.y, normal.z, normal.w")
+output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
+output.write(", u.x, u.y, u.z, u.w")
+output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
+output.write(", rho, drhodt, e, dedt, m, imove\n")
+n_surf =0
+for cell in mesh.cells:
+    def triangle(cell, verts):
+        a, b, c = [verts[i] * TO_METERS for i in cell]
+        r = np.mean([a, b, c], axis=0)
+        t = b - a
+        n = np.cross(b - a, c - a)
+        s = 0.5 * np.linalg.norm(n)
+        t /= np.linalg.norm(t)
+        n /= 2.0 * s
+        if np.dot(r - IN_POINT, n) < 0.0:
+            n = -n
+        return r, n, t, s
+        
+    if cell.type != 'triangle':
+        if cell.type not in ['line', 'vertex', ]:
+            print(f"WARNING: Found a cell of type {cell.type}")
+        continue
+    for elem in cell.data:
+        r, n, t, s = triangle(elem, verts)
+        dens = rhop
+        imove = -3
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+            r[0], r[1], r[2],
+            n[0], n[1], n[2],
+            t[0], t[1], t[2],
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            dens,
+            0.0,    
+            e1,
+            0.0,
+            s,
+            imove)
+        output.write(string)
+        
+        n_surf += 1
+output.close()
+print(f"Done! {n_surf} boundary elements written")
 
-            output.write(string)
-            n_parts += 1
-    output.close()
+prefixes.append("ball_mm-shell")
 
-    prefix = fout[:-4].replace('.', '_') + '_'
-    prefixes.append(prefix)
-    data = {'N_PARTS':str(n_parts), 'REFD':str(refd),
-            'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-            'FIN':fout, 'FOUT':fout[:-4], 'PREFIX':prefix, 'ISET':str(i + 1)}
-    utils.configure(data, os.path.join(script_folder, "rock_template"))
-    fout = f[:-4] + ".xml"
-    print(f"Writing {fout}...")
-    os.rename('rock.xml', fout)
-    xml_files.append(fout)
+data = {'N_PARTS':str(0), 'REFD':str(rhop),
+        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
+        'FIN':"Surface.dat", 'FOUT':"ball", 'PREFIX':"ball_mm-shell", 'ISET':str(1)}
+utils.configure(data, os.path.join(script_folder, "rock_template"))
+fout = "ball_mm-shell.xml"
+print(f"Writing {fout}...")
+os.rename('rock.xml', fout)
 
-# Write a general reader to be included from Main.xml
-with open("rocks.xml", "w") as f:
+xml_files.append(fout)
+
+
+with open("balls.xml", "w") as f:
     f.write("<sphInput>\n")
     for xml in xml_files:
         f.write(f'\t<Include file="{xml}" />\n')
@@ -173,20 +175,13 @@ with open("rocks.xml", "w") as f:
     f.write("\t</Tools>\n")
     f.write("</sphInput>\n")
 
+
+
+
+# Fluid
+# ============
+
 print("Writing fluid...")
-
-
-L, B = float(bbox[1][0] - bbox[0][0]), float(bbox[1][1] - bbox[0][1])
-H = float(bbox[1][2])
-
-L *= 2.0
-B *= 1.3
-H *= 1.5
-
-sep = 2.0
-h = hfac * dr
-Lext = L
-
 
 Nx = nx = int(round(Lext / dr))
 Ny = ny = int(round(B / dr))
@@ -201,43 +196,50 @@ H = Nz * dr
 points = []
 hL = 0.5 * Lext
 hB = 0.5 * B
-#x = np.linspace(-hL - 0.5 * dr, hL + 0.5 * dr, num=Nx)
+hh = 0.5 * H
+
 x = np.linspace(-hL + 0.5 * dr, hL - 0.5 * dr, num=Nx)
 y = np.linspace(-hB + 0.5 * dr, hB - 0.5 * dr, num=Ny)
-z = np.linspace(0.5 * dr, H - 0.5 * dr, num=nz)
+z = np.linspace(-hh + 0.5 * dr, hh - 0.5 * dr, num=Nz)
+
 xv, yv, zv = np.meshgrid(x, y, z)
 points = np.asarray([xv.flatten(), yv.flatten(), zv.flatten()]).transpose()
 print(f"{len(points)} candidate points")
-for i, mesh in enumerate(meshes):
-    [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds
-    mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
-           (points[:, 0] <= (xmax + 0.5 * dr)) & \
-           (points[:, 1] >= (ymin - 0.5 * dr)) & \
-           (points[:, 1] <= (ymax + 0.5 * dr)) & \
-           (points[:, 2] >= (zmin - 0.5 * dr)) & \
-           (points[:, 2] <= (zmax + 0.5 * dr))
-    mask[mask] = np.asarray(mesh.contains(points[mask]))
-    print(f"Dropping {np.sum(mask)} points inside {xml_files[i][:-4]}")
-    points = points[np.logical_not(mask)]
-    distance = dr * np.ones(len(points))
-    mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
-           (points[:, 0] <= (xmax + 0.5 * dr)) & \
-           (points[:, 1] >= (ymin - 0.5 * dr)) & \
-           (points[:, 1] <= (ymax + 0.5 * dr)) & \
-           (points[:, 2] >= (zmin - 0.5 * dr)) & \
-           (points[:, 2] <= (zmax + 0.5 * dr))
-    _, distance[mask], _ = mesh.nearest.on_surface(points[mask])
-    mask = distance < 0.25 * dr
-    print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
-    points = points[np.logical_not(mask)]
 
 
-Cx=-2*hL/5
-#Cy=0.0
-#Cz=H/2
+# Removing points in the sphere
+# ================================
 
-R=0.5*min(min(hL,hB), H/2)
+mask=np.sqrt(points[:,0]**2+points[:,1]**2+points[:,2]**2)<R
 
+#[[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds
+#mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+#        (points[:, 0] <= (xmax + 0.5 * dr)) & \
+#        (points[:, 1] >= (ymin - 0.5 * dr)) & \
+#        (points[:, 1] <= (ymax + 0.5 * dr)) & \
+#        (points[:, 2] >= (zmin - 0.5 * dr)) & \
+#        (points[:, 2] <= (zmax + 0.5 * dr))
+#mask[mask] = np.asarray(mesh.contains(points[mask]))
+print(f"Dropping {np.sum(mask)} points inside {xml_files[0][:-4]}")
+points = points[np.logical_not(mask)]
+
+# Removing points too close
+# ================================
+
+#distance = dr * np.ones(len(points))
+#mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+#        (points[:, 0] <= (xmax + 0.5 * dr)) & \
+#        (points[:, 1] >= (ymin - 0.5 * dr)) & \
+#        (points[:, 1] <= (ymax + 0.5 * dr)) & \
+#        (points[:, 2] >= (zmin - 0.5 * dr)) & \
+#        (points[:, 2] <= (zmax + 0.5 * dr))
+#_, distance[mask], _ = mesh.nearest.on_surface(points[mask])
+#mask = distance < 0.25 * dr
+#print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
+#points = points[np.logical_not(mask)]
+
+# Go for the remaining points
+# =============================
 
 output = open("fluid.dat", "w")
 output.write("# r.x, r.y, r.z, r.w")
@@ -247,15 +249,18 @@ output.write(", u.x, u.y, u.z, u.w")
 output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
 output.write(", rho, drhodt, e, dedt, m, imove\n")
 n_fluid = 0
+
 for point in points:
     x, y, z = point
     imove = 1
     
-    #if np.sqrt((x-Cx)**2+(y-Cy)**2+(z-Cz)**2) < R:
-    if x<Cx:
-        rho, ener = rho1, e1
+    mod=np.sqrt(x*x+y*y+z*z)
+    
+    if x < -R -0.5*dr:
+        rho, ener, imove = rho2, e2, 1  
+        
     else:
-        rho, ener = rho2, e2
+        rho, ener, imove = rho1, e1, 1
         
     mass = rho * dr**3.0
     string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
@@ -279,7 +284,7 @@ for i in range(Nx):
     x = -hL + 0.5 * dr + i * dr
     for j in range(Ny):
         y = -hB + 0.5 * dr + j * dr
-        z = 0.0
+        z = -hh
         imove = -3
         mass = dr**2.0
         string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
@@ -303,7 +308,7 @@ for i in range(Nx):
     x = -hL + 0.5 * dr + i * dr
     for j in range(Ny):
         y = -hB + 0.5 * dr + j * dr
-        z = H
+        z = hh
         imove = -3
         mass = dr**2.0
         string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
@@ -326,7 +331,7 @@ for i in range(Nx):
     #x = -hL - 0.5 * dr + i * dr
     x = -hL + 0.5 * dr + i * dr
     for k in range(Nz):
-        z = 0.5 * dr + k * dr
+        z = -hh + 0.5 * dr + k * dr
         for j in (-1, 1):
             y = hB * j
             ny = j
@@ -352,7 +357,7 @@ for i in range(Nx):
 for j in range(Ny):
     y = -hB + 0.5 * dr + j * dr
     for k in range(Nz):
-        z = 0.5 * dr + k * dr
+        z = -hh + 0.5 * dr + k * dr
         for i in (-1, 1):
             x = hL * i #+ dr * i
             nx = i
@@ -382,12 +387,12 @@ domain_max = (Lext, B, 1.5 * H, 0.0)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
+        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(rho1),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
         'L':str(L), 'B':str(B), 'H':str(H), 'GAMMA':str(gamma),        
         'NX':str(Nx), 'NY':str(Ny), 'NZ':str(Nz), 'T': str(t_max),
-        'NROCKS':str(n_rocks), 'n_fluid':str(n_fluid)}
+        'NROCKS':str(1), 'n_fluid':str(n_fluid)}
 exttool_lib_name = "rocks_sim.dll" if platform.system() == "Windows" \
-    else "libs_rocks_sim.so"
+    else "libball_sim.so"
 data['EXTTOOL_LIB_PATH'] = os.path.join(script_folder, exttool_lib_name)
 utils.configure(data, os.path.join(script_folder, "templates"))
