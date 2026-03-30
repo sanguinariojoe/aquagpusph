@@ -154,7 +154,7 @@ prefixes.append("ball_mm-shell")
 
 data = {'N_PARTS':str(0), 'REFD':str(rhop),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-        'FIN':"ball", 'FOUT':"ball", 'PREFIX':"ball_mm-shell", 'ISET':str(1)}
+        'FIN':"Surface.dat", 'FOUT':"ball", 'PREFIX':"ball_mm-shell", 'ISET':str(1)}
 utils.configure(data, os.path.join(script_folder, "rock_template"))
 fout = "ball_mm-shell.xml"
 print(f"Writing {fout}...")
