@@ -210,7 +210,7 @@ print(f"{len(points)} candidate points")
 # Removing points in the sphere
 # ================================
 
-mask=np.sqrt(points[:,0]**2+points[:,1]**2+points[:,2]**2)<R
+mask=np.sqrt(points[:,0]**2+points[:,1]**2+points[:,2]**2)< R + dr
 
 #[[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds
 #mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
