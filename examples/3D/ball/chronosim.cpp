@@ -28,7 +28,7 @@
 #include <cmath>
 
 // The density of the rock material
-#define ROCK_DENSITY 2.0
+#define ROCK_DENSITY 89.4
 // The envelope size, that should match the blender setup
 #define ENVELOPE_SIZE 0.001
 
@@ -87,10 +87,13 @@ RocksSim::setup()
     const float L = *((float*)vars->get("L")->get(true));
     //const float rho = *((float*)vars->get("REFD")->get(true));
     
+    printf("Chronosim: Number of solids %u", n_solids);
+    printf("Chronosim: Number of solids %f", L);
+
     // Setup the chrono system
     _sys = chrono_types::make_shared<chrono::ChSystemNSC>();
     _sys->SetCollisionSystemType(chrono::ChCollisionSystem::Type::BULLET);
-    _sys->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -9.81));
+    _sys->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, 0));
 
     // Setup the floor
     auto ground_mat =
@@ -111,11 +114,11 @@ RocksSim::setup()
 
     // Setup the rocks
     const unsigned int digits = num_digits(n_solids);
-    
+
 
     for (unsigned int i=0; i < n_solids; i++) {
         auto trimesh = chrono::ChTriangleMeshConnected::CreateFromSTLFile(
-            std::string("rock.") + int2string(i, digits) + ".subdivided.stl");
+            std::string("ball.") + int2string(i, digits) + ".subdivided.stl");
         double vol;
         chrono::ChVector3d cog;
         chrono::ChMatrix33<> inertia;
@@ -126,7 +129,7 @@ RocksSim::setup()
         auto rock = chrono_types::make_shared<chrono::ChBody>();
         _rocks.push_back(rock);
         _sys->Add(rock);
-        rock->SetName(std::string("rock.") + std::to_string(i));
+        rock->SetName(std::string("ball.") + std::to_string(i));
         rock->SetMass(vol * ROCK_DENSITY);
         rock->SetInertia(inertia * ROCK_DENSITY);
 
@@ -183,23 +186,23 @@ RocksSim::setup()
     std::vector<std::string> indeps({"dt"}), outdeps;
     for (unsigned int i=0; i < n_solids; i++) {
         indeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_Force_p");
+            std::string("ball_") + int2string(i, digits) + "_Force_p");
         indeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_Moment_p");
+            std::string("ball_") + int2string(i, digits) + "_Moment_p");
         outdeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_forces_r");
+            std::string("ball_") + int2string(i, digits) + "_forces_r");
         outdeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_motion_r");
+            std::string("ball_") + int2string(i, digits) + "_motion_r");
         outdeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_motion_drdt");
+            std::string("ball_") + int2string(i, digits) + "_motion_drdt");
         outdeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_motion_ddrddt");
+            std::string("ball_") + int2string(i, digits) + "_motion_ddrddt");
         outdeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_motion_a");
+            std::string("ball_") + int2string(i, digits) + "_motion_a");
         outdeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_motion_dadt");
+            std::string("ball_") + int2string(i, digits) + "_motion_dadt");
         outdeps.push_back(
-            std::string("rock_") + int2string(i, digits) + "_motion_ddaddt");
+            std::string("ball_") + int2string(i, digits) + "_motion_ddaddt");
     }
 };
 
@@ -239,7 +242,7 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     unsigned int n_solids = _rocks.size();
     const unsigned int digits = num_digits(n_solids);
     for (unsigned int i = 0; i < n_solids; i++) {
-        std::string prefix = std::string("rock_") + int2string(i, digits);
+        std::string prefix = std::string("ball_") + int2string(i, digits);
         const vec4 F = *((vec4*)vars->get(prefix + "_Force_p")->get(true));
         const vec4 M = *((vec4*)vars->get(prefix + "_Moment_p")->get(true));
 
@@ -253,7 +256,7 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 
     // Get the new positions and angles
     for (unsigned int i = 0; i < n_solids; i++) {
-        std::string prefix = std::string("rock_") + int2string(i, digits);
+        std::string prefix = std::string("ball_") + int2string(i, digits);
         auto rock = _rocks[i];
         const chrono::ChVector3d r = rock->GetPos();
         const chrono::ChVector3d drdt = rock->GetLinVel();

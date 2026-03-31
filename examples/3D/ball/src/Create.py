@@ -37,7 +37,7 @@ sys.path.append(os.path.join(script_folder, "../../"))
 import aqua_example_utils as utils
 
 import numpy as np
-
+import trimesh
 import meshio
 import platform
 import math
@@ -95,75 +95,93 @@ IN_POINT = [0, 0, 0]
 
 # Read the surface mesh file and create the boundary particles
 # ============================================================
+files = [f for f in os.listdir(script_folder) if os.path.isfile(
+    os.path.join(script_folder, f))]
+files = sorted(
+    [f for f in files if f.startswith('ball.') and f.endswith('.stl')])
+files = sorted(
+    [f for f in files if not f.endswith('subdivided.stl')])
+n_balls = len(files)
 
-
+meshes = []
 xml_files = []
 prefixes = []
+bbox = np.array([[np.finfo(np.float64).max,
+                  np.finfo(np.float64).max,
+                  np.finfo(np.float64).max],
+                 [np.finfo(np.float64).min,
+                  np.finfo(np.float64).min,
+                  np.finfo(np.float64).min]])
 
-print("Parsing the shell...")
-mesh = meshio.read("ball_mm-shell.msh")
-verts = mesh.points
-output = open("Surface.dat", "w")
-output.write("# r.x, r.y, r.z, r.w")
-output.write(", normal.x, normal.y, normal.z, normal.w")
-output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
-output.write(", u.x, u.y, u.z, u.w")
-output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
-output.write(", rho, drhodt, e, dedt, m, imove\n")
-n_surf =0
-for cell in mesh.cells:
-    def triangle(cell, verts):
-        a, b, c = [verts[i] * TO_METERS for i in cell]
-        r = np.mean([a, b, c], axis=0)
-        t = b - a
-        n = np.cross(b - a, c - a)
-        s = 0.5 * np.linalg.norm(n)
-        t /= np.linalg.norm(t)
-        n /= 2.0 * s
-        if np.dot(r - IN_POINT, n) < 0.0:
-            n = -n
-        return r, n, t, s
-        
-    if cell.type != 'triangle':
-        if cell.type not in ['line', 'vertex', ]:
-            print(f"WARNING: Found a cell of type {cell.type}")
-        continue
-    for elem in cell.data:
-        r, n, t, s = triangle(elem, verts)
-        dens = rhop
-        imove = -3
-        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-            r[0], r[1], r[2],
-            n[0], n[1], n[2],
-            t[0], t[1], t[2],
-            0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0,
-            dens,
-            0.0,    
-            e1,
-            0.0,
-            s,
-            imove)
-        output.write(string)
-        
-        n_surf += 1
-output.close()
-print(f"Done! {n_surf} boundary elements written")
+for i, f in enumerate(files):
+    fout = f[:-4] + ".subdivided.stl"
+    mesh = trimesh.load(os.path.join(script_folder, f))
+    meshes.append(mesh)
+    new_v, new_f = trimesh.remesh.subdivide_to_size(mesh.vertices,
+                                                    mesh.faces,
+                                                    dr)
+    mesh = trimesh.Trimesh(vertices=new_v, faces=new_f)
+    mesh.export(fout)
+    mesh = meshio.read(os.path.join(script_folder, fout))
+    fout = f[:-4] + ".dat"
+    print(f"Writing {fout}...")
+    output = open(f"{fout}", "w")
+    output.write("# r.x, r.y, r.z, r.w")
+    output.write(", normal.x, normal.y, normal.z, normal.w")
+    output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
+    output.write(", u.x, u.y, u.z, u.w")
+    output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
+    output.write(", rho, drhodt, e, dedt, m, imove\n")
+    n_parts = 0
+    verts = mesh.points
+    for cell in mesh.cells:
+        def triangle(cell, verts):
+            a, b, c = [verts[i] for i in cell]
+            r = np.mean([a, b, c], axis=0)
+            t = b - a
+            n = np.cross(b - a, c - a)
+            s = 0.5 * np.linalg.norm(n)
+            t /= np.linalg.norm(t)
+            n /= 2.0 * s
+            n = -n  # Inwards normals
+            return r, n, t, s
 
-prefixes.append("ball_mm-shell")
+        for elem in cell.data:
+            r, n, t, s = triangle(elem, verts)
+            bbox[0] = np.min((bbox[0], r), axis=0)
+            bbox[1] = np.max((bbox[1], r), axis=0)
+            dens = refd
+            imove = -3
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+                r[0], r[1], r[2],
+                n[0], n[1], n[2],
+                t[0], t[1], t[2],
+                0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                rho2,
+                0.0,
+                e2,
+                0.0,
+                s,
+                imove)
 
-data = {'N_PARTS':str(0), 'REFD':str(rhop),
-        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-        'FIN':"Surface.dat", 'FOUT':"ball", 'PREFIX':"ball_mm-shell", 'ISET':str(1)}
-utils.configure(data, os.path.join(script_folder, "rock_template"))
-fout = "ball_mm-shell.xml"
-print(f"Writing {fout}...")
-os.rename('rock.xml', fout)
+            output.write(string)
+            n_parts += 1
+    output.close()
 
-xml_files.append(fout)
+    prefix = fout[:-4].replace('.', '_') + '_'
+    prefixes.append(prefix)
+    data = {'N_PARTS':str(n_parts), 'REFD':str(rhop),
+            'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
+            'FIN':fout, 'FOUT':fout[:-4], 'PREFIX':prefix, 'ISET':str(i + 1)}
+    utils.configure(data, os.path.join(script_folder, "ball_template"))
+    fout = f[:-4] + ".xml"
+    print(f"Writing {fout}...")
+    os.rename('ball.xml', fout)
+    xml_files.append(fout)
 
-
-with open("balls.xml", "w") as f:
+# Write a general reader to be included from Main.xml
+with open("ball.xml", "w") as f:
     f.write("<sphInput>\n")
     for xml in xml_files:
         f.write(f'\t<Include file="{xml}" />\n')
@@ -174,9 +192,6 @@ with open("balls.xml", "w") as f:
         f.write(f'\t\t<Tool name="{prefix}cfd BIe backup moment_visc" action="try_remove" type="dummy"></Tool>\n')
     f.write("\t</Tools>\n")
     f.write("</sphInput>\n")
-
-
-
 
 # Fluid
 # ============
@@ -209,34 +224,28 @@ print(f"{len(points)} candidate points")
 
 # Removing points in the sphere
 # ================================
-
-mask=np.sqrt(points[:,0]**2+points[:,1]**2+points[:,2]**2)< R + dr
-
-#[[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds
-#mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
-#        (points[:, 0] <= (xmax + 0.5 * dr)) & \
-#        (points[:, 1] >= (ymin - 0.5 * dr)) & \
-#        (points[:, 1] <= (ymax + 0.5 * dr)) & \
-#        (points[:, 2] >= (zmin - 0.5 * dr)) & \
-#        (points[:, 2] <= (zmax + 0.5 * dr))
-#mask[mask] = np.asarray(mesh.contains(points[mask]))
-print(f"Dropping {np.sum(mask)} points inside {xml_files[0][:-4]}")
-points = points[np.logical_not(mask)]
-
-# Removing points too close
-# ================================
-
-#distance = dr * np.ones(len(points))
-#mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
-#        (points[:, 0] <= (xmax + 0.5 * dr)) & \
-#        (points[:, 1] >= (ymin - 0.5 * dr)) & \
-#        (points[:, 1] <= (ymax + 0.5 * dr)) & \
-#        (points[:, 2] >= (zmin - 0.5 * dr)) & \
-#        (points[:, 2] <= (zmax + 0.5 * dr))
-#_, distance[mask], _ = mesh.nearest.on_surface(points[mask])
-#mask = distance < 0.25 * dr
-#print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
-#points = points[np.logical_not(mask)]
+for i, mesh in enumerate(meshes):
+    [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds
+    mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+           (points[:, 0] <= (xmax + 0.5 * dr)) & \
+           (points[:, 1] >= (ymin - 0.5 * dr)) & \
+           (points[:, 1] <= (ymax + 0.5 * dr)) & \
+           (points[:, 2] >= (zmin - 0.5 * dr)) & \
+           (points[:, 2] <= (zmax + 0.5 * dr))
+    mask[mask] = np.asarray(mesh.contains(points[mask]))
+    print(f"Dropping {np.sum(mask)} points inside {xml_files[i][:-4]}")
+    points = points[np.logical_not(mask)]
+    distance = dr * np.ones(len(points))
+    mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+           (points[:, 0] <= (xmax + 0.5 * dr)) & \
+           (points[:, 1] >= (ymin - 0.5 * dr)) & \
+           (points[:, 1] <= (ymax + 0.5 * dr)) & \
+           (points[:, 2] >= (zmin - 0.5 * dr)) & \
+           (points[:, 2] <= (zmax + 0.5 * dr))
+    _, distance[mask], _ = mesh.nearest.on_surface(points[mask])
+    mask = distance < 0.25 * dr
+    print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
+    points = points[np.logical_not(mask)]
 
 # Go for the remaining points
 # =============================
