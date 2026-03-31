@@ -49,7 +49,7 @@ g = 0.0
 hfac = 2.0
 dr = 0.004
 
-#refd = 1.0
+
 alpha = 0.0
 delta = 1.0
 visc_dyn = 0.0
@@ -80,6 +80,7 @@ cs = max(c1, c2)
 t_max=1.5e-3
 
 rhop=89.4
+refd=rhop
 
 L = 0.6
 B = 0.08
@@ -119,7 +120,8 @@ for i, f in enumerate(files):
     meshes.append(mesh)
     new_v, new_f = trimesh.remesh.subdivide_to_size(mesh.vertices,
                                                     mesh.faces,
-                                                    dr)
+                                                    dr*1000)
+
     mesh = trimesh.Trimesh(vertices=new_v, faces=new_f)
     mesh.export(fout)
     mesh = meshio.read(os.path.join(script_folder, fout))
@@ -136,7 +138,7 @@ for i, f in enumerate(files):
     verts = mesh.points
     for cell in mesh.cells:
         def triangle(cell, verts):
-            a, b, c = [verts[i] for i in cell]
+            a, b, c = [verts[i]*TO_METERS for i in cell]
             r = np.mean([a, b, c], axis=0)
             t = b - a
             n = np.cross(b - a, c - a)
@@ -150,7 +152,7 @@ for i, f in enumerate(files):
             r, n, t, s = triangle(elem, verts)
             bbox[0] = np.min((bbox[0], r), axis=0)
             bbox[1] = np.max((bbox[1], r), axis=0)
-            dens = refd
+            #dens = refd
             imove = -3
             string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
                 r[0], r[1], r[2],
@@ -181,7 +183,7 @@ for i, f in enumerate(files):
     xml_files.append(fout)
 
 # Write a general reader to be included from Main.xml
-with open("ball.xml", "w") as f:
+with open("balls.xml", "w") as f:
     f.write("<sphInput>\n")
     for xml in xml_files:
         f.write(f'\t<Include file="{xml}" />\n')
@@ -225,25 +227,25 @@ print(f"{len(points)} candidate points")
 # Removing points in the sphere
 # ================================
 for i, mesh in enumerate(meshes):
-    [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds
+    [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds*TO_METERS
     mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
            (points[:, 0] <= (xmax + 0.5 * dr)) & \
            (points[:, 1] >= (ymin - 0.5 * dr)) & \
            (points[:, 1] <= (ymax + 0.5 * dr)) & \
            (points[:, 2] >= (zmin - 0.5 * dr)) & \
            (points[:, 2] <= (zmax + 0.5 * dr))
-    mask[mask] = np.asarray(mesh.contains(points[mask]))
+    mask[mask] = np.asarray(mesh.contains(points[mask]/TO_METERS))
     print(f"Dropping {np.sum(mask)} points inside {xml_files[i][:-4]}")
     points = points[np.logical_not(mask)]
-    distance = dr * np.ones(len(points))
+    distance = dr/TO_METERS * np.ones(len(points))
     mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
            (points[:, 0] <= (xmax + 0.5 * dr)) & \
            (points[:, 1] >= (ymin - 0.5 * dr)) & \
            (points[:, 1] <= (ymax + 0.5 * dr)) & \
            (points[:, 2] >= (zmin - 0.5 * dr)) & \
            (points[:, 2] <= (zmax + 0.5 * dr))
-    _, distance[mask], _ = mesh.nearest.on_surface(points[mask])
-    mask = distance < 0.25 * dr
+    _, distance[mask], _ = mesh.nearest.on_surface(points[mask]/TO_METERS)
+    mask = distance < 0.25 * dr/TO_METERS
     print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
     points = points[np.logical_not(mask)]
 
