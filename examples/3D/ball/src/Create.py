@@ -267,7 +267,7 @@ for point in points:
     
     mod=np.sqrt(x*x+y*y+z*z)
     
-    if x < -R -0.5*dr:
+    if x < -R -0.5*dr-0.01:
         rho, ener, imove = rho2, e2, 1  
         
     else:
@@ -392,9 +392,9 @@ for j in range(Ny):
             
 output.close()
 
-domain_min = (-Lext, -B, -0.5 * H, 0.0)
+domain_min = (-hL, -hB, -hh, 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (Lext, B, 1.5 * H, 0.0)
+domain_max = (hL, hB, hh, 0.0)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
@@ -402,7 +402,7 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
         'L':str(L), 'B':str(B), 'H':str(H), 'GAMMA':str(gamma),        
         'NX':str(Nx), 'NY':str(Ny), 'NZ':str(Nz), 'T': str(t_max),
-        'NROCKS':str(1), 'n_fluid':str(n_fluid)}
+        'NROCKS':str(n_balls), 'n_fluid':str(n_fluid)}
 exttool_lib_name = "rocks_sim.dll" if platform.system() == "Windows" \
     else "libball_sim.so"
 data['EXTTOOL_LIB_PATH'] = os.path.join(script_folder, exttool_lib_name)

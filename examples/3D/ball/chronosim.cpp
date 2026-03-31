@@ -88,8 +88,9 @@ RocksSim::setup()
     //const float rho = *((float*)vars->get("REFD")->get(true));
     
     printf("Chronosim: Number of solids %u", n_solids);
-    printf("Chronosim: Number of solids %f", L);
-
+    printf("\n");
+    printf("Chronosim: Value of L %f", L);
+    printf("\n");
     // Setup the chrono system
     _sys = chrono_types::make_shared<chrono::ChSystemNSC>();
     _sys->SetCollisionSystemType(chrono::ChCollisionSystem::Type::BULLET);
@@ -109,21 +110,32 @@ RocksSim::setup()
     _ground->SetName("g");
     _ground->GetCollisionModel()->SetEnvelope(ENVELOPE_SIZE);
     _sys->AddBody(_ground);
-    _ground->SetPos(chrono::ChVector3d(0.0, 0.0, -(L + ENVELOPE_SIZE)));
+    _ground->SetPos(chrono::ChVector3d(0.0, 0.0, -(L/2 + ENVELOPE_SIZE)));
+    //_ground->SetPos(chrono::ChVector3d(0.0, 0.0, -(L + ENVELOPE_SIZE)));
     _ground->SetFixed(true);
 
     // Setup the rocks
     const unsigned int digits = num_digits(n_solids);
 
+    printf("Ground defined\n");
 
     for (unsigned int i=0; i < n_solids; i++) {
+
+        printf("Loading Ball %d\n", i);
+
+        auto nameballfile = std::string("ball.") + int2string(i, digits) + ".subdivided.stl";
+        std::cout << "in file " << nameballfile << std::endl;
+
         auto trimesh = chrono::ChTriangleMeshConnected::CreateFromSTLFile(
             std::string("ball.") + int2string(i, digits) + ".subdivided.stl");
+
         double vol;
         chrono::ChVector3d cog;
         chrono::ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, vol, cog, inertia);
         trimesh->Transform(-cog, chrono::ChMatrix33<>(1));
+
+        printf("Ball %d read. Inertia calculated.\n", i);
 
         // Setup the rock body
         auto rock = chrono_types::make_shared<chrono::ChBody>();
