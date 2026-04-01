@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief The simulation of the Apollo capsule rigid body, using
+ * @brief The simulation of a st of rocks defined as a rigid body, using
  * https://projectchrono.org/
  */
 

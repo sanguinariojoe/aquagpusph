@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief The simulation of the Apollo capsule rigid body, using
+ * @brief The simulation of a Ball as rigid body, using
  * https://projectchrono.org/
  */
 
@@ -97,6 +97,7 @@ RocksSim::~RocksSim()
 void
 RocksSim::setup()
 {
+    printf("Chronosim: Starting the setup\n");
     //Tool is Aqua I believe
     Tool::setup();
 
@@ -109,9 +110,16 @@ RocksSim::setup()
     const unsigned int n_solids =
         *((unsigned int*)vars->get("n_solids")->get(true));
     //simmilar arcane operation to get the Length L
+    printf("Chronosim: getting L\n");
     const float L = *((float*)vars->get("L")->get(true));
     //const float rho = *((float*)vars->get("REFD")->get(true));
+    printf("Chronosim: getting B\n");
+    const float B = *((float*)vars->get("B")->get(true));
+    printf("Chronosim: getting H\n");
+    const float H = *((float*)vars->get("H")->get(true));
     
+
+
     printf("Chronosim: Number of solids %u", n_solids);
     printf("\n");
     printf("Chronosim: Value of L %f", L);
@@ -139,7 +147,7 @@ RocksSim::setup()
     ground_mat->SetFriction(1.0);
 
     _ground = chrono_types::make_shared<chrono::ChBodyEasyBox>(
-        2 * L, 2 * L, 2 * L,            // Box size (we choose the position later)
+        L, B, H,                        // Box size (we choose the position later)
         1e6,                            // Density (fixed, it does not matter)
         false,                          // No visual needed
         true,                           // Collisions enabled
@@ -147,7 +155,7 @@ RocksSim::setup()
     _ground->SetName("g");
     _ground->GetCollisionModel()->SetEnvelope(ENVELOPE_SIZE);
     _sys->AddBody(_ground);
-    _ground->SetPos(chrono::ChVector3d(0.0, 0.0, -(L/2 + ENVELOPE_SIZE)));
+    _ground->SetPos(chrono::ChVector3d(0.0, 0.0, -(H + ENVELOPE_SIZE)));
     //_ground->SetPos(chrono::ChVector3d(0.0, 0.0, -(L + ENVELOPE_SIZE)));
     // Grund is static
     _ground->SetFixed(true);
@@ -405,6 +413,9 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     // Compute the dynamics
     _sys->DoStepDynamics(dt);
 
+//    auto debval = _rocks[0]->GetLinVel().x();
+//    auto debval = _rocks[0]->GetLinVel().Length();
+//    printf("x velocity of ball %e\n", debval);
 
     // Get the new positions and angles
     for (unsigned int i = 0; i < n_solids; i++) {
@@ -420,6 +431,8 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         const chrono::ChVector3d dadt = rock->GetAngVelLocal(); // Angular velocity
         const chrono::ChVector3d ddaddt = rock->GetAngAccLocal(); // Angular Acceleration
  
+
+        
         // new things are transferred
         setVec(vars->get(prefix + "_forces_r"), r);
         setVec(vars->get(prefix + "_motion_r"), r);

@@ -161,7 +161,7 @@ for i, f in enumerate(files):
                 t[0], t[1], t[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
-                rho2,
+                rhop,
                 0.0,
                 e2,
                 0.0,
