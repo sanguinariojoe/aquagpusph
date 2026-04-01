@@ -79,8 +79,8 @@ cs = max(c1, c2)
 
 t_max=1.5e-3
 
-#rhop=89.4
-rhop=0.894
+rhop=89.4
+#rhop=0.894
 refd=rhop
 
 L = 0.6

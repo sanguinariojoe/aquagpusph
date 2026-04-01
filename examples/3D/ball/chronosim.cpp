@@ -30,8 +30,11 @@
 #include <stdexcept>
 
 // The density of the rock material
-//#define ROCK_DENSITY 89.4
-#define ROCK_DENSITY 0.894
+#define ROCK_DENSITY 89.4
+//#define ROCK_DENSITY 0.894
+
+//#define TO_KG_MM3 1.0e-9
+//#define TO_M2 1.0e-6
 
 // The envelope size, that should match the blender setup
 // is this value correct?
@@ -120,10 +123,11 @@ RocksSim::setup()
     
 
 
-    printf("Chronosim: Number of solids %u", n_solids);
-    printf("\n");
-    printf("Chronosim: Value of L %f", L);
-    printf("\n");
+    printf("Chronosim: Number of solids %u\n", n_solids);
+
+    printf("Chronosim: Value of L %f\n", L);
+    printf("Chronosim: Value of B %f\n", B);
+    printf("Chronosim: Value of H %f\n", H);
 
     // Setup the chrono system
     // ChSystemNSC Non-Smooth Contact 
@@ -183,6 +187,20 @@ RocksSim::setup()
         }
                 
         auto trimesh = chrono::ChTriangleMeshConnected::CreateFromSTLFile(nameballfile);
+        double scale_factor = 0.001;
+
+        // 3. Apply the transformation "The Clean Way"
+        // Parameters: (Translation vector, Rotation/Scaling matrix)
+        trimesh->Transform(chrono::ChVector3d(0, 0, 0), chrono::ChMatrix33<>(scale_factor));
+        //chrono::ChVector3d min_v, max_v;
+        //trimesh->GetBoundingBox(min_v, max_v);
+
+        auto aabb = trimesh->GetBoundingBox(); 
+        // std::cout << std::format("Mesh Size: X={:.3e}, Y={:.3e}, Z={:.3e} meters\n", 
+        //      max_v.x() - min_v.x(), 
+        //      max_v.y() - min_v.y(), 
+        //      max_v.z() - min_v.z());
+        std::cout << "Ball size Min: " << aabb.min.x() << " Max: " << aabb.max.x() << std::endl;
         //trimesh is a ChTriangleMeshConnected object
 
         // auto trimesh = chrono::ChTriangleMeshConnected::CreateFromSTLFile(
@@ -198,7 +216,7 @@ RocksSim::setup()
         // oputput is per unit of density
         // that is everything must be multiplied by density afterwards
         trimesh->ComputeMassProperties(true, vol, cog, inertia);
-
+        printf("Volume of object %d is %e", i, vol);
         // move the center of the ball to the center of gravity 
         // and apply there the inertia
         // chrono::ChMatrix33<>(1) means do not rotate the ball
@@ -404,7 +422,10 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         std::string prefix = std::string("ball_") + int2string(i, digits);
         const vec4 F = *((vec4*)vars->get(prefix + "_Force_p")->get(true));
         const vec4 M = *((vec4*)vars->get(prefix + "_Moment_p")->get(true));
-
+        // printf("x force of ball %e\n", F.x);
+        // printf("y force of ball %e\n", F.y);
+        // printf("z force of ball %e\n", F.z);
+        // printf("w force of ball %e\n", F.w);
         //set the forces for Chrono
         setForce(_forces[i], F);
         setForce(_torques[i], M);
