@@ -79,7 +79,8 @@ cs = max(c1, c2)
 
 t_max=1.5e-3
 
-rhop=89.4
+#rhop=89.4
+rhop=0.894
 refd=rhop
 
 L = 0.6
@@ -268,17 +269,17 @@ for point in points:
     mod=np.sqrt(x*x+y*y+z*z)
     
     if x < -R -0.5*dr-0.01:
-        rho, ener, imove = rho2, e2, 1  
+        rho, ener, imove, velx = rho2, e2, 1, u2  
         
     else:
-        rho, ener, imove = rho1, e1, 1
+        rho, ener, imove, velx = rho1, e1, 1, u1
         
     mass = rho * dr**3.0
     string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
         x, y, z,
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
+        velx, 0.0, 0.0,
         0.0, 0.0, 0.0,
         rho,
         0.0,
