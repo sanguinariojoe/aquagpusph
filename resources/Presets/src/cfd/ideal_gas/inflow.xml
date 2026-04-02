@@ -7,6 +7,8 @@
         <Variable name="inflow_gamma" type="float" value="0.0" />
     </Variables>    
     <Tools>
-        <Tool name="cfd inflow" action="insert" before="Rates" type="kernel" entry_point="rates" path="../../Scripts/cfd/ideal_gas/Inflow/Inflow.cl"/>
+        <Tool name="cfd inflow feed energy" action="insert" before="Inflow" type="kernel" entry_point="feed" path="../../../Scripts/cfd/ideal_gas/Inflow/Inflow.cl"/>
+                <!-- Now ensure that particles in the inflow are not affected by the interactions -->
+        <Tool name="cfd inflow energy" action="insert" before="Rates" type="kernel" entry_point="rates" path="../../../Scripts/cfd/ideal_gas/Inflow/Inflow.cl"/>
     </Tools>
 </sphInput>

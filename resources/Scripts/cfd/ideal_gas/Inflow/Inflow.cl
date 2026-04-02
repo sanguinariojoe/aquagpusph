@@ -58,7 +58,7 @@ __kernel void feed(svec2 inflow_N,
                    __global float* restrict drhodt,
                    __global float* restrict eint,
                    __global float* restrict gamma,
-                   __global float* restrict deintdt,
+                   __global float* restrict deintdt
                    )
 {
     // find position in global arrays
@@ -73,9 +73,46 @@ __kernel void feed(svec2 inflow_N,
     const usize ii = i + N - nbuffer;
  
     rho[ii] = inflow_rho;
-    rhodt[ii] = 0.f;    
+    drhodt[ii] = 0.f;    
     eint[ii] = inflow_e;
     deintdt[ii] = 0.f;
     gamma[ii] = inflow_gamma;
     p[ii] = (inflow_gamma - 1.0f) * rho[ii] * eint[ii];
+}
+
+/** @brief Vanish the velocity and desnity rates of variation of the velocity
+ * and density for the dummy particles of the inflow.
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param N Number of particles.
+ * @param inflow_r Lower corner of the inflow square.
+ * @param inflow_U Velocity magnitude of the generated particles.
+ * @param inflow_n Velocity direction of the generated particles.
+ */
+__kernel void rates(__global int* restrict imove,
+                    __global vec* restrict r,
+                    __global float* restrict deintdt,
+                    usize N,
+                    vec inflow_r,
+                    vec inflow_n)
+{
+    // find position in global arrays
+    const usize i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != 1)
+        return;
+
+    // Discard the particles already passed through the inflow
+    if(dot(r[i] - inflow_r, inflow_n) > 0.f)
+        return;
+
+    deintdt[i] = 0.f;
 }

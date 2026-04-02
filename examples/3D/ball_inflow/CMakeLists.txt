@@ -1,7 +1,7 @@
 include(${AQUAGPUSPH_CMAKE_MODULE_PATH}/example.cmake)
 
 add_library(ball_inflow_sim SHARED chronosim.cpp)
-target_include_directories(ball_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(ball_inflow_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
                                              ${CHRONO_INCLUDE_DIRS}
                                              ${CMAKE_BINARY_DIR}
                                              ${CMAKE_SOURCE_DIR}

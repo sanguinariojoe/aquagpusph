@@ -47,7 +47,7 @@ import math
 
 g = 0.0
 hfac = 2.0
-dr = 0.002
+dr = 0.004
 
 
 alpha = 0.0
@@ -430,6 +430,6 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'NROCKS':str(n_balls), 'n_fluid':str(n_fluid), 
         'RHO2':str(rho2),'U2':str(u2), 'E2':str(e2)}
 exttool_lib_name = "rocks_sim.dll" if platform.system() == "Windows" \
-    else "libball_sim.so"
+    else "libball_inflow_sim.so"
 data['EXTTOOL_LIB_PATH'] = os.path.join(script_folder, exttool_lib_name)
 utils.configure(data, os.path.join(script_folder, "templates"))

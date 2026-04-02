@@ -38,7 +38,7 @@ Authors:
         <Variable name="REFD" type="float" value="{{REFD}}" />
         <Variable name="n_solids" type="unsigned int" value="{{NROCKS}}" />
         <!-- Inlet boundary condition -->
-        <Variable name="inflow_r" type="vec" value="-0.5*{{L}}, -0.5*{{B}}, -0.5{{H}}, 0.0" />
+        <Variable name="inflow_r" type="vec" value="-0.5*{{L}}, -0.5*{{B}}, -0.5*{{H}}, 0.0" />
         <Variable name="inflow_ru" type="vec" value="0.0, {{B}}, 0.0, 0.0" />
         <Variable name="inflow_rv" type="vec" value="0.0, 0.0, {{H}}, 0.0" />
         <Variable name="inflow_rFS" type="vec" value="-0.5*{{L}}, 0.0, 0.0, 0.0" />
