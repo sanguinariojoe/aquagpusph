@@ -31,6 +31,6 @@ Authors:
             type="IPF" Iterations per frame
         You can conveniently combine several printing criterias.
         -->
-        <Option name="Output" type="FPS" value="100000" />
+        <Option name="Output" type="FPS" value="10000000" />
     </Timing>
 </sphInput>
