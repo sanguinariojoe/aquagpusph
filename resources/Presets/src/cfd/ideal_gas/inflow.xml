@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+
+<sphInput>
+    <Variables>
+        <Variable name="inflow_e" type="float" value="0.0" />
+        <Variable name="inflow_rho" type="float" value="0.0" />
+        <Variable name="inflow_gamma" type="float" value="0.0" />
+    </Variables>    
+    <Tools>
+        <Tool name="cfd inflow" action="insert" before="Rates" type="kernel" entry_point="rates" path="../../Scripts/cfd/ideal_gas/Inflow/Inflow.cl"/>
+    </Tools>
+</sphInput>

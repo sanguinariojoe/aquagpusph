@@ -370,27 +370,51 @@ for j in range(Ny):
     y = -hB + 0.5 * dr + j * dr
     for k in range(Nz):
         z = -hh + 0.5 * dr + k * dr
-        for i in (-1, 1):
-            x = hL * i #+ dr * i
-            nx = i
-            imove = -3
-            mass = dr**2.0
-            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-                x, y, z,
-                nx, 0.0, 0.0,
-                0.0, 0.0, -nx,
-                0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0,
-                rho2,
-                0.0,
-                e2,
-                0.0,
-                mass,
-                imove)
-            output.write(string)
-            n_fluid += 1
-            
-            
+        #for i in (-1, 1):
+        x = hL #+ dr * i
+        nx = i
+        imove = -3
+        mass = dr**2.0
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+            x, y, z,
+            nx, 0.0, 0.0,
+            0.0, 0.0, -nx,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            rho2,
+            0.0,
+            e2,
+            0.0,
+            mass,
+            imove)
+        output.write(string)
+        n_fluid += 1
+        
+n_buffer_depth = 16
+n_buffer = n_buffer_depth * Ny * Nz
+
+x = hL + 2 * 2 * h
+y = hB + 2 * 2 * h
+z = hh + 2 * 2 * h
+for i in range(n_buffer):
+    n += 1
+    imove = -255       
+    mass = rho2 * dr**2.0
+    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+        x, y, z,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        rho2,
+        0.0,  
+        e2,
+        0.0,
+        mass,
+        imove)
+    output.write(string)
+    n_fluid += 1
+          
 output.close()
 
 domain_min = (-hL, -hB, -hh, 0.0)
@@ -403,7 +427,8 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
         'L':str(L), 'B':str(B), 'H':str(H), 'GAMMA':str(gamma),        
         'NX':str(Nx), 'NY':str(Ny), 'NZ':str(Nz), 'T': str(t_max),
-        'NROCKS':str(n_balls), 'n_fluid':str(n_fluid)}
+        'NROCKS':str(n_balls), 'n_fluid':str(n_fluid), 
+        'RHO2':str(rho2),'U2':str(u2), 'E2':str(e2)}
 exttool_lib_name = "rocks_sim.dll" if platform.system() == "Windows" \
     else "libball_sim.so"
 data['EXTTOOL_LIB_PATH'] = os.path.join(script_folder, exttool_lib_name)
