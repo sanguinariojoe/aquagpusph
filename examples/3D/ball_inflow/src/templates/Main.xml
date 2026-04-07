@@ -43,8 +43,9 @@ Authors:
     <!--<Include file="resources/Presets/cfd/BIe/disableElasticBounce.xml" />-->
     <Include file="resources/Presets/cfd/BIe/disablePST.xml" />
 
-    <Include file="resources/Presets/cfd/inflow.xml" /> 
-    <Include file="resources/Presets/cfd/ideal_gas/inflow.xml" />
+    <!--<Include file="resources/Presets/cfd/inflow.xml" /> 
+    <Include file="resources/Presets/cfd/ideal_gas/inflow.xml" />-->
+    <Include file="resources/Presets/cfd/ideal_gas/inlet.xml" />
     <!--<Include file="resources/Presets/cfd/outlet.xml" />-->
 
     <!--<Include file="resources/Presets/cfd/energy.xml" />-->

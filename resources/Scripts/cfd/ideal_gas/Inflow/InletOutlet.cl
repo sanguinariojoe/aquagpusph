@@ -88,9 +88,9 @@ __kernel void characteristics(const __global int* restrict imove,
     const float pref = p_from_rho_eint(io_gamma, io_rho, io_eint);
     const float rhoref = io_rho;
 
-    j1[i] = -cs_i2 * (rho[i] - rhoref) + p[i] - pref;
-    j2[i] = rho[i] * cs_i * (un - uref) + p[i] - pref;
-    j3[i] = -rho[i] * cs_i * (un - uref) + p[i] - pref;
+    j1[i] = -cs_i2 * (rho[i] - rhoref) + p_i - pref;
+    j2[i] = rho[i] * cs_i * (un - uref) + p_i - pref;
+    j3[i] = -rho[i] * cs_i * (un - uref) + p_i - pref;
 }
 
 
@@ -101,6 +101,7 @@ __kernel void values(const __global int* restrict imove,
                      __global vec* restrict u,
                      __global float* restrict rho,  
                      __global float* restrict eint,
+                     const __global float* restrict gamma,
                      __global float* restrict p,
                      const __global float* restrict j1,
                      const __global float* restrict j2,
@@ -138,8 +139,8 @@ __kernel void values(const __global int* restrict imove,
     // const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
     // const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
 
-    rho[i] = rhoref + 1.f / cs2 * (-j1[i] + 0.5f * j2[i] + 0.5f * j3[i]);
-    u[i] = (uref + 1.f / (2.f * rho[i] * cs) * (j2[i] - j3[i])) * io_n;
+    rho[i] = rhoref + 1.f / cs_i2 * (-j1[i] + 0.5f * j2[i] + 0.5f * j3[i]);
+    u[i] = (uref + 1.f / (2.f * rho[i] * cs_i) * (j2[i] - j3[i])) * io_n;
     p[i] = pref + 0.5f * (j2[i] + j3[i]);
-    eint[i] = eint_from_rho_p(io_gamma, rho[i], p[i]);
+    eint[i] = eint_from_rho_p(gamma[iset[i]], rho[i], p[i]);
 }

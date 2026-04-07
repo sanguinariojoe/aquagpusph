@@ -46,6 +46,6 @@ Authors:
         <Variable name="inflow_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
         <Variable name="inflow_U" type="float" value="{{U2}}" />
         <Variable name="inflow_rho" type="float" value="{{RHO2}}" />
-        <Variable name="inflow_e" type="float" value="{{E2}}" />
+        <Variable name="inflow_eint" type="float" value="{{E2}}" />
     </Variables>
 </sphInput>

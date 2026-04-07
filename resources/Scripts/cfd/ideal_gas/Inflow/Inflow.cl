@@ -50,7 +50,7 @@
 __kernel void feed(svec2 inflow_N,
                    int inflow_starving,
                    float inflow_rho,
-                   float inflow_e,
+                   float inflow_eint,
                    float inflow_gamma,   
                    usize N,
                    usize nbuffer,
@@ -75,10 +75,10 @@ __kernel void feed(svec2 inflow_N,
  
     rho[ii] = inflow_rho;
     drhodt[ii] = 0.f;    
-    eint[ii] = inflow_e;
+    eint[ii] = inflow_eint;
     deintdt[ii] = 0.f;
     gamma[ii] = inflow_gamma;
-    p[ii] = p_from_rho_eint(inflow_gamma, inflow_rho, inflow_e);
+    p[ii] = p_from_rho_eint(inflow_gamma, inflow_rho, inflow_eint);
     
     //p[ii] = (inflow_gamma - 1.0f) * inflow_rho * inflow_e;
 }

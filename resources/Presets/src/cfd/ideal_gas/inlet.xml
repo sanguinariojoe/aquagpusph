@@ -40,10 +40,10 @@
         <Tool name="cfd inlet characteristics" action="insert"
             after="cfd inlet io_r,cfd inlet io_n,cfd inlet io_U,cfd inlet io_rho,cfd inlet io_eint"
             type="kernel"
-            entry_point="characteristics" path="../../Scripts/cfd/ideal_gas/Inlet.cl" />
+            entry_point="characteristics" path="../../../Scripts/cfd/ideal_gas/Inflow/Inlet.cl" />
 
         <Tool name="cfd inlet extrapolate" action="insert" after="cfd inlet characteristics"
-            type="kernel" entry_point="extrapolate" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl" />
+            type="kernel" entry_point="extrapolate" path="../../../Scripts/cfd/Boundary/Inlet/Inlet.cl" />
 
         <Tool name="cfd inlet J1=0" action="insert" after="cfd inlet extrapolate" type="set" in="j1"
             value="0.f" />
@@ -54,6 +54,6 @@
 
         <Tool name="cfd inlet set" action="insert"
             after="cfd inlet J1=0,cfd inlet J2=0,cfd inlet J3" type="kernel" entry_point="values"
-            path="../../Scripts/cfd/ideal_gas/Inlet.cl" />
+            path="../../../Scripts/cfd/ideal_gas/Inflow/Inlet.cl" />
     </Tools>
 </sphInput>
