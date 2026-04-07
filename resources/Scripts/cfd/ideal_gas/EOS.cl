@@ -33,6 +33,7 @@
     #define EXCLUDED_PARTICLE(index) (imove[index] <= 0) && (imove[index] != -1)
 #endif
 
+#include EOS_MODEL
 #include "resources/Scripts/types/types.h"
 
 /** @brief Ideal gas Equation Of State (EOS) computation
@@ -65,8 +66,10 @@ __kernel void entry(const __global unsigned int* iset,
         return;
     if(EXCLUDED_PARTICLE(i))
         return;
-
-    p[i] = (gamma[iset[i]] - 1.0f) * rho[i] * eint[i];
+    
+    p[i] = p_from_rho_eint(gamma[iset[i]], rho[i], eint[i]);
+    
+//    p[i] = (gamma[iset[i]] - 1.0f) * rho[i] * eint[i];
 }
 
 /*

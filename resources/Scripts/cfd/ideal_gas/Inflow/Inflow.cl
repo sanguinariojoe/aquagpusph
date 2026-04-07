@@ -7,6 +7,7 @@
  * and density for the dummy particles of the inflow.
  */
 
+#include EOS_MODEL
 #include "resources/Scripts/types/types.h"
 
 /** @brief Particles generation at the inflow boundary condition.
@@ -77,7 +78,9 @@ __kernel void feed(svec2 inflow_N,
     eint[ii] = inflow_e;
     deintdt[ii] = 0.f;
     gamma[ii] = inflow_gamma;
-    p[ii] = (inflow_gamma - 1.0f) * rho[ii] * eint[ii];
+    p[ii] = p_from_rho_eint(inflow_gamma, inflow_rho, inflow_e);
+    
+    //p[ii] = (inflow_gamma - 1.0f) * inflow_rho * inflow_e;
 }
 
 /** @brief Vanish the velocity and desnity rates of variation of the velocity

@@ -5,6 +5,10 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 -->
 
 <sphInput>
+    <Definitions>
+        <Define name="EOS_MODEL" value="&lt;resources/Scripts/cfd/ideal_gas/p_from_rho_eint.hcl&gt;" evaluate="false" />
+        <Define name="SOUND_MODEL" value="&lt;resources/Scripts/cfd/ideal_gas/sound_speed.hcl&gt;" evaluate="false" />
+    </Definitions>
     <Variables>
         <Variable name="gamma" type="float*" length="n_sets" />
         <Variable name="eint" type="float*" length="N" />

@@ -141,7 +141,6 @@ __kernel void extrapolate(const __global int* restrict imove,
                           __global float* restrict j2_tmp,
                           __global float* restrict j3_tmp,
                           __global float* restrict shepard,
-                          const __constant float* restrict refd,
                           usize N,
                           vec io_r,
                           vec io_n)

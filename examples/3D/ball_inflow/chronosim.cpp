@@ -472,7 +472,7 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         vars->populate(prefix + "_motion_dadt");
         vars->populate(prefix + "_motion_ddaddt");
     }
-    return NULL;
+    return nullptr;
 }
 
 }}  // namespaces
