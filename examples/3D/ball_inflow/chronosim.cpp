@@ -232,7 +232,7 @@ RocksSim::setup()
         rock->SetName(std::string("ball.") + std::to_string(i)); // why not int2string local method?
 
         // note multiplication of previously per unit of density magnitudes 
-        rock->SetMass(vol * ROCK_DENSITY);
+        rock->SetMass(vol * ROCK_DENSITY);        
         rock->SetInertia(inertia * ROCK_DENSITY);
 
         // Setup the collision model
@@ -313,7 +313,7 @@ RocksSim::setup()
 
     
     // _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_IMPLICIT);
-    _sys->Setup();//final step before you enter the simulation loop
+    _sys->Setup();//final step before one enters the simulation loop
 
     std::vector<std::string> indeps({"dt"}), outdeps; // creates two
     // vectors of strings, indeps and outdeps, indeps initialized with 
@@ -408,7 +408,7 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     // arcane type of aqua
     auto vars = CalcServer::singleton()->variables();
     
-    //get the timestep
+    //get the timestep, convert to float* deindiriction
     float dt = *((float*)vars->get("dt")->get(true));
 
     // Apply the forces to the rocks

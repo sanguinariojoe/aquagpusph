@@ -26,6 +26,12 @@
 #include <aquagpusph/InputOutput/Logger.hpp>
 #include <cmath>
 
+/** @brief Creates a function "create_object" that returns a 
+           ApolloSim object. ApolloSim is the derived class 
+           from Aqua::CalcServer::Tool
+           Extern "C" makes this C namestyle
+    @return ApolloSim object
+*/
 extern "C" Aqua::CalcServer::ApolloSim* create_object(
     const std::string name, bool once)
 {
@@ -34,40 +40,66 @@ extern "C" Aqua::CalcServer::ApolloSim* create_object(
 
 namespace Aqua{ namespace CalcServer{
 
+// Arcane meaning for non-initiated
+// initiates a tool element. Aqua inner I undertand. What is this exactly?
 ApolloSim::ApolloSim(const std::string name, bool once)
     : Tool(name, once)
 {
 }
 
+// Destructor
+// Default destructor without memory
+// handling should be automatically done
+// why to have it explicitly?
 ApolloSim::~ApolloSim()
 {
 }
 
+//I think this variables should be removed or commented.
+//All usage has been commented in lines bellow
 #define LB2KG 0.4535924
 #define IN2M 0.0254
 
 void
 ApolloSim::setup()
 {
+    printf("Chronosim: Starting the setup\n");
+    
+    //Tool is Aqua I believe
     Tool::setup();
 
     // Get the configuration variables
     auto vars = CalcServer::singleton()->variables();
+
     _pitch = *((float*)vars->get("pitch")->get(true));
     _vel = *((float*)vars->get("u0")->get(true));
-    _cogz = *((float*)vars->get("cogz")->get(true));
-    _pitch *= M_PI / 180.0;
+    _cogz = *((float*)vars->get("cogz")->get(true)); //what is this? center of gravity?
+    _pitch *= M_PI / 180.0; // in modern usage, utilization of std::numbers::pi better than M_PI
 
+    // Setup the chrono system
+    // ChSystemNSC Non-Smooth Contact 
+    // Rigid collision and friction
     _sys = chrono_types::make_shared<chrono::ChSystemNSC>();
+
+    //Create a generic new body, without properties
     _apollo = chrono_types::make_shared<chrono::ChBody>();
+
+    //Add or Addbody is almost the same
     _sys->AddBody(_apollo);
+
+    // Add a generic force and momentum
     _force = chrono_types::make_shared<chrono::ChForce>();
     _moment = chrono_types::make_shared<chrono::ChForce>();
+    // Add them to the body
     _apollo->AddForce(_force);
     _apollo->AddForce(_moment);
 
+    // add an string identifiyer to the apollo
     _apollo->SetName("Apollo");
+
+    //Add gravity in z direction
     _sys->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -9.81));
+
     // Simulating Space Capsule Water Landing with Explicit Finite Element
     // Method
     // _apollo->SetMass(16200 * LB2KG);
@@ -78,38 +110,72 @@ ApolloSim::setup()
     // ));
     // Pitching Angle on Space Capsule Water Landing Using Smooth Particle
     // Hydrodynamic Method
+
+    //mass direcly introduced as known
     _apollo->SetMass(3900);
+
+    // Set the diagonal moments of innertia $I_{xx}$, $I_{yy}$, $I_{zz}$
     _apollo->SetInertiaXX(chrono::ChVector3d(5560, 5270, 4180));
 
-    _force->SetMode(chrono::ChForce::FORCE);
-    _force->SetFrame(chrono::ChForce::BODY);
-    _force->SetAlign(chrono::ChForce::WORLD_DIR);
-    _force->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
-    _moment->SetMode(chrono::ChForce::TORQUE);
-    _moment->SetFrame(chrono::ChForce::BODY);
-    _moment->SetAlign(chrono::ChForce::WORLD_DIR);
-    _moment->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
+    //define the parameters of the force
+    _force->SetMode(chrono::ChForce::FORCE);// force and not torque
+    _force->SetFrame(chrono::ChForce::BODY);// Even as the body flies across the map, the force stays perfectly centered on the body's mass.
+    _force->SetAlign(chrono::ChForce::WORLD_DIR);// This defines the Direction where the vector points. The direction of the force is fixed relative to the Inertial World Frame (the X, Y, Z axes of the universe).
+        // Even if the ball starts tumbling or spinning at high speeds after the impact, the force will always point in the same direction (e.g., always pushing "East").
+    _force->SetVrelpoint(chrono::ChVector3d(0, 0, 0));// It is set at the point (0,0,0), the force is "attached" to the center of the body.
+    
+    
+    //define the paramter of the momentum
+    _moment->SetMode(chrono::ChForce::TORQUE);// torque and not force
+    _moment->SetFrame(chrono::ChForce::BODY);// Even as the body flies across the map, the force stays perfectly centered on the body's mass.
+    _moment->SetAlign(chrono::ChForce::WORLD_DIR);// This defines the Direction where the vector points. The direction of the force is fixed relative to the Inertial World Frame (the X, Y, Z axes of the universe).
+        // Even if the ball starts tumbling or spinning at high speeds after the impact, the force will always point in the same direction (e.g., always pushing "East").
+    _moment->SetVrelpoint(chrono::ChVector3d(0, 0, 0));// It is set at the point (0,0,0), the force is "attached" to the center of the body.
 
-    _apollo->SetPos(chrono::ChVector3d(0, 0, _cogz));
-    _apollo->SetLinVel(chrono::ChVector3d(0, 0, -_vel));
+
+    _apollo->SetPos(chrono::ChVector3d(0, 0, _cogz));// moving the body back to its cog? maybe in z direction?
+    _apollo->SetLinVel(chrono::ChVector3d(0, 0, -_vel));// initial velocity
+
     // On NWU coordinates:
     //    x : Positive moment = positive roll = portside goes up
     //    y : Positive moment = positive pitch = bow goes down
     //    z : Positive moment = positive yaw = bow goes to the portside
+
+    //create a cuaternion
     chrono::ChQuaternion<double> R;
+    //cardan angles known, set them inside
     R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, _pitch, 0));
+    //give initial turn
     _apollo->SetRot(R);
 
-    _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);
-    _sys->Setup();
+    _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);//define time integrator
 
+    _sys->Setup();//final step before one enters the simulation loop
+
+    //custom co-simulation wrappers
+    //setting which variables must be updated or satisfied
+    // before the next calculation step can proceed
+
+    //maybe defined by the use of midpoint integrator
+    //in aqua
     setInputDependencies({"dt", "iter_midpoint", "iter_midpoint_max",
                           "Force_p_iset", "Moment_p_iset"});
+    
+    //defines what the system writes or provides to other 
+    //modules after a calculation is finished.
     setOutputDependencies({"motion_r", "motion_drdt", "motion_ddrddt",
                            "motion_a", "motion_dadt", "motion_ddaddt",
                            "forces_r"});
-};
 
+};//setup finalizes here
+
+
+/**
+ * @brief Set the Force object * 
+ * @param var The Chrono project force pointer one
+ * whises to get
+ * @param value the Opencl vector that is already known
+ */
 void
 setForce(std::shared_ptr<chrono::ChForce> var, vec4 value)
 {
@@ -125,6 +191,11 @@ setForce(std::shared_ptr<chrono::ChForce> var, vec4 value)
     }
 }
 
+
+/** @brief get a vector from Chrono and set an Aqua variable
+ * @param var The aqua variable that will be set
+ * @param value The known Chrono vector
+ */
 void
 setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
 {
@@ -136,10 +207,27 @@ setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
     var->set(&v, true);
 }
 
+
+
+
+/**
+ * @brief Calculate time step integration
+ * get force and momentum
+ * calculate movement in the time step dt
+ * actualize position, velocity, etc...
+ * of each object
+ * @param
+ * @return This munction returns a cl_event that 
+ * is fixed to NULL
+ * I do not know why this is ok
+ * I do not know why not a nullptr is used
+ */
 cl_event
 ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
-{
+{   
+    // arcane type of aqua
     auto vars = CalcServer::singleton()->variables();
+
     // Check whether we are on the midpoint, or at the final iteration
     const unsigned int iter =
         *((unsigned int*)vars->get("iter_midpoint")->get(true));
@@ -147,26 +235,36 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         *((unsigned int*)vars->get("iter_midpoint_max")->get(true));
     const bool is_midpoint = iter < iter_max;
     // Get the forces from AQUAgpusph
+    //get the timestep, convert to float* deindiriction
     float dt = *((float*)vars->get("dt")->get(true));
+    //get force and momentum from aqua
+    // forces and moments are know at this stage
+    // that is the singleton object know them
     const vec4 F = *((vec4*)vars->get("Force_p_iset")->get(true));
     const vec4 M = *((vec4*)vars->get("Moment_p_iset")->get(true));
 
     if (iter == 0) {
         // At the beggining of the time step we must copy the results from
-        // the other instance of this solver
+        // the other instance of this solver ?????????????
         vec4 data;
         chrono::ChQuaternion<double> R;
+
         data = *((vec4*)vars->get("motion_r")->get(true));
         _apollo->SetPos(chrono::ChVector3d(data.x, data.y, data.z));
+        
         data = *((vec4*)vars->get("motion_drdt")->get(true));
-        _apollo->SetLinVel(chrono::ChVector3d(data.x, data.y, data.z));
+        _apollo->SetLinVel(chrono::ChVector3d(data.x, data.y, data.z));//modern Chrono SetPos_dt
+        
         data = *((vec4*)vars->get("motion_ddrddt")->get(true));
-        _apollo->SetLinAcc(chrono::ChVector3d(data.x, data.y, data.z));
+        _apollo->SetLinAcc(chrono::ChVector3d(data.x, data.y, data.z));//modern Chrono SetPos_dt
+        
         data = *((vec4*)vars->get("motion_a")->get(true));
         R.SetFromCardanAnglesXYZ(chrono::ChVector3d(data.x, data.y, data.z));
         _apollo->SetRot(R);
+
         data = *((vec4*)vars->get("motion_dadt")->get(true));
         _apollo->SetAngVelLocal(chrono::ChVector3d(data.x, data.y, data.z));
+        
         data = *((vec4*)vars->get("motion_ddaddt")->get(true));
         _apollo->SetAngAccLocal(chrono::ChVector3d(data.x, data.y, data.z));
     }
@@ -174,22 +272,45 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     // Book-keeping, so we can restore the state within the midpoint iterations
     // This is actually needed also at the final iterator because of the Euler
     // explicit (see below)
-    double T = _sys->GetChTime();
+    double T = _sys->GetChTime();//current simulation time
+
+    // GetNumCoordsPosLevel: integer representing the total number of 
+    //coordinates (degrees of freedom) at the position level currently in your simulation
+    // _sys.get() returns the raw pointer to the memory address where the system lives
+    // chrono::ChState initializing a chrono::ChState object. 
+    // This is a specialized container used by Chrono to store the entire "Position Level" 
+    // state of the system—the x,y,z coordinates and quaternions for every moving body
     chrono::ChState X(_sys->GetNumCoordsPosLevel(), _sys.get());
+    
+    //store the velocities and accelerations of your system.
     chrono::ChStateDelta V(_sys->GetNumCoordsVelLevel(), _sys.get());
     chrono::ChStateDelta A(_sys->GetNumCoordsVelLevel(), _sys.get());
+
+    //_sys->GetNumConstraints() returns an integer representing the 
+    // total number of scalar constraint equations currently active in your system 
+    // L(sys->GetNumConstraints()), creates a container specifically
+    // designed to hold the Lagrange Multipliers (λ) for your simulation.
     chrono::ChVectorDynamic<> L(_sys->GetNumConstraints());
+
+    //get vels and accelerations
     const chrono::ChVector3d drdt0 = _apollo->GetLinVel();
     const chrono::ChVector3d ddrddt0 = _apollo->GetLinAcc();
     const chrono::ChVector3d dadt0 = _apollo->GetAngVelLocal();
     const chrono::ChVector3d ddaddt0 = _apollo->GetAngAccLocal();
+
+    // "synchronize" mathematical containers with the current physical state of the simulation.
+    // It pulls the raw data out of the ChBody objects and packs them into the 
+    // ChState and ChStateDelta vectors initialized earlier (X and V).
     _sys->StateGather(X, V, T);
-    _sys->StateGatherAcceleration(A);
-    _sys->StateGatherReactions(L);
+    _sys->StateGatherAcceleration(A);//acceleration 6 dimensions
+    _sys->StateGatherReactions(L);//constrains 
 
     // Compute the dynamics
+    // introduce in chrono the soliciations
     setForce(_force, F);
     setForce(_moment, M);
+
+    //calculate
     _sys->DoStepDynamics(dt);
 
     // Explicit Euler is not considering the force we setted, so we must rewind
@@ -233,6 +354,7 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         vars->populate("motion_dadt");
         vars->populate("motion_ddaddt");
     } else {
+        // here the new possition, vel, etc is got from Chrono
         setVec(vars->get("motion_r"), r);
         setVec(vars->get("motion_a"), a);
         setVec(vars->get("forces_r"), r);
@@ -248,7 +370,7 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         vars->populate("motion_dadt");
         vars->populate("motion_ddaddt");
     }
-    return NULL;
+    return nullptr;
 }
 
 }}  // namespaces
