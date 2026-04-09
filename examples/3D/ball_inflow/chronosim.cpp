@@ -29,7 +29,7 @@
 #include <filesystem>
 #include <stdexcept>
 
-// The density of the rock material
+// The density of the ball material
 #define ROCK_DENSITY 89.4
 //#define ROCK_DENSITY 0.894
 
@@ -85,8 +85,7 @@ std::string int2string(unsigned int n, unsigned int digits)
     return str;
 }
 
-// Arcane meaning for non-initiated
-// initiates a tool element. What is this?
+// initiates a tool element, Aqua type
 RocksSim::RocksSim(const std::string name, bool once)
     : Tool(name, once)
 {
@@ -101,15 +100,14 @@ void
 RocksSim::setup()
 {
     printf("Chronosim: Starting the setup\n");
-    //Tool is Aqua I believe
+    
+    //Tool is from Aqua 
     Tool::setup();
 
     // Get the configuration variables
     auto vars = CalcServer::singleton()->variables();
 
-    // unsafe cast to (unsigned int*) of vars sold true
-    // dereference with *()
-    // very arcane operation that clearly get number of solids
+    // get number of solids
     const unsigned int n_solids =
         *((unsigned int*)vars->get("n_solids")->get(true));
     //simmilar arcane operation to get the Length L
@@ -229,7 +227,7 @@ RocksSim::setup()
         _rocks.push_back(rock); //method of std::vector
         _sys->Add(rock); // Add to simulation
 
-        rock->SetName(std::string("ball.") + std::to_string(i)); // why not int2string local method?
+        rock->SetName(std::string("ball.") + std::to_string(i)); 
 
         // note multiplication of previously per unit of density magnitudes 
         rock->SetMass(vol * ROCK_DENSITY);        
@@ -322,7 +320,9 @@ RocksSim::setup()
     for (unsigned int i=0; i < n_solids; i++) {
         
         // adds members to the vector, 
-        // indeps independent variables ?
+        // custom co-simulation wrappers
+        // setting which variables must be updated or satisfied
+        // before the next calculation step (inchrono) can proceed
         indeps.push_back(
             std::string("ball_") + int2string(i, digits) + "_Force_p");
         indeps.push_back(
@@ -330,6 +330,8 @@ RocksSim::setup()
 
         // add members to the vector outdeps
         // outdeps 
+        //defines what the system writes or provides to other 
+        //modules after a calculation is finished.
         outdeps.push_back(
             std::string("ball_") + int2string(i, digits) + "_forces_r");
         outdeps.push_back(
@@ -398,14 +400,12 @@ setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
  * @param
  * @return This munction returns a cl_event that 
  * is fixed to NULL
- * I do not know why this is ok
- * I do not know why not a nullptr is used
  */
 
 cl_event
 RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
-    // arcane type of aqua
+    //  type of aqua
     auto vars = CalcServer::singleton()->variables();
     
     //get the timestep, convert to float* deindiriction

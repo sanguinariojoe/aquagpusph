@@ -42,6 +42,372 @@ import meshio
 import platform
 import math
 
+from memory_profiler import profile
+
+def read_mesh_create_surface():
+    
+    print("Reading surface mesh and creating particles...")
+    files = [f for f in os.listdir(script_folder) if os.path.isfile(
+        os.path.join(script_folder, f))]
+    files = sorted(
+        [f for f in files if f.startswith('ball.') and f.endswith('.stl')])
+    files = sorted(
+        [f for f in files if not f.endswith('subdivided.stl')])
+    n_balls = len(files)
+
+    meshes = []
+    xml_files = []
+    prefixes = []
+    bbox = np.array([[np.finfo(np.float64).max,
+                    np.finfo(np.float64).max,
+                    np.finfo(np.float64).max],
+                    [np.finfo(np.float64).min,
+                    np.finfo(np.float64).min,
+                    np.finfo(np.float64).min]])
+
+    for i, f in enumerate(files):
+        
+        fout = f[:-4] + ".subdivided.stl"
+        
+        print("dealing with file:")
+        print(fout)
+        
+        mesh = trimesh.load(os.path.join(script_folder, f))
+        meshes.append(mesh)
+        new_v, new_f = trimesh.remesh.subdivide_to_size(mesh.vertices,
+                                                        mesh.faces,
+                                                        dr*1000)
+
+        mesh = trimesh.Trimesh(vertices=new_v, faces=new_f)
+        mesh.export(fout)
+        mesh = meshio.read(os.path.join(script_folder, fout))
+        fout = f[:-4] + ".dat"
+        print(f"Writing {fout}...")
+        output = open(f"{fout}", "w")
+        output.write("# r.x, r.y, r.z, r.w")
+        output.write(", normal.x, normal.y, normal.z, normal.w")
+        output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
+        output.write(", u.x, u.y, u.z, u.w")
+        output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
+        output.write(", rho, drhodt, e, dedt, m, imove\n")
+        n_parts = 0
+        verts = mesh.points
+        for cell in mesh.cells:
+            def triangle(cell, verts):
+                a, b, c = [verts[i]*TO_METERS for i in cell]
+                r = np.mean([a, b, c], axis=0)
+                t = b - a
+                n = np.cross(b - a, c - a)
+                s = 0.5 * np.linalg.norm(n)
+                t /= np.linalg.norm(t)
+                n /= 2.0 * s
+                n = -n  # Inwards normals
+                return r, n, t, s
+
+            for elem in cell.data:
+                r, n, t, s = triangle(elem, verts)
+                bbox[0] = np.min((bbox[0], r), axis=0)
+                bbox[1] = np.max((bbox[1], r), axis=0)
+                #dens = refd
+                imove = -3
+                string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+                    r[0], r[1], r[2],
+                    n[0], n[1], n[2],
+                    t[0], t[1], t[2],
+                    0.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0,
+                    rhop,
+                    0.0,
+                    e2,
+                    0.0,
+                    s,
+                    imove)
+
+                output.write(string)
+                n_parts += 1
+        output.close()
+
+        prefix = fout[:-4].replace('.', '_') + '_'
+        prefixes.append(prefix)
+        data = {'N_PARTS':str(n_parts), 'REFD':str(rhop),
+                'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
+                'FIN':fout, 'FOUT':fout[:-4], 'PREFIX':prefix, 'ISET':str(i + 1)}
+        utils.configure(data, os.path.join(script_folder, "ball_template"))
+        fout = f[:-4] + ".xml"
+        print(f"Writing {fout}...")
+        os.rename('ball.xml', fout)
+        xml_files.append(fout)
+
+    # Write a general reader to be included from Main.xml
+    with open("balls.xml", "w") as f:
+        f.write("<sphInput>\n")
+        for xml in xml_files:
+            f.write(f'\t<Include file="{xml}" />\n')
+        f.write("\t<Tools>\n")
+        for prefix in prefixes[1:]:
+            f.write(f'\t\t<Tool name="{prefix}cfd BIe backup p" action="try_remove" type="dummy"></Tool>\n')
+            f.write(f'\t\t<Tool name="{prefix}cfd BIe backup force_visc" action="try_remove" type="dummy"></Tool>\n')
+            f.write(f'\t\t<Tool name="{prefix}cfd -DCMAKE_BUILD_TYPE=Debug ..BIe backup moment_visc" action="try_remove" type="dummy"></Tool>\n')
+        f.write("\t</Tools>\n")
+        f.write("</sphInput>\n")
+
+    print("Ready with the surfaces...")
+    
+    return n_balls, meshes, xml_files, prefixes, bbox
+
+@profile
+def reject_points(meshes, dr, xml_files, points):
+    
+    for i, mesh in enumerate(meshes):
+        [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds*TO_METERS
+        mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+            (points[:, 0] <= (xmax + 0.5 * dr)) & \
+            (points[:, 1] >= (ymin - 0.5 * dr)) & \
+            (points[:, 1] <= (ymax + 0.5 * dr)) & \
+            (points[:, 2] >= (zmin - 0.5 * dr)) & \
+            (points[:, 2] <= (zmax + 0.5 * dr))
+        
+        print("Interior mask created")
+        print("Analizing interior points")
+        mask[mask] = np.asarray(mesh.contains(points[mask]/TO_METERS))
+        print(f"Dropping {np.sum(mask)} points inside {xml_files[i][:-4]}")
+        
+        points = points[np.logical_not(mask)]
+        
+        distance = dr/TO_METERS * np.ones(len(points))
+
+        mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+            (points[:, 0] <= (xmax + 0.5 * dr)) & \
+            (points[:, 1] >= (ymin - 0.5 * dr)) & \
+            (points[:, 1] <= (ymax + 0.5 * dr)) & \
+            (points[:, 2] >= (zmin - 0.5 * dr)) & \
+            (points[:, 2] <= (zmax + 0.5 * dr))
+            
+        print("Distance mask created")
+        print("Analizing mesh points")
+        _, distance[mask], _ = mesh.nearest.on_surface(points[mask]/TO_METERS)
+        mask = distance < 0.25 * dr/TO_METERS
+        print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
+        points = points[np.logical_not(mask)]
+
+def reject_points_all(meshes, dr, xml_files, points):
+    
+    reject_points_interior(meshes, dr, xml_files, points)
+    reject_points_distance(meshes, dr, xml_files, points)
+
+@profile
+def reject_points_interior(meshes, dr, xml_files, points):
+    
+    for i, mesh in enumerate(meshes):
+        [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds*TO_METERS
+        mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+            (points[:, 0] <= (xmax + 0.5 * dr)) & \
+            (points[:, 1] >= (ymin - 0.5 * dr)) & \
+            (points[:, 1] <= (ymax + 0.5 * dr)) & \
+            (points[:, 2] >= (zmin - 0.5 * dr)) & \
+            (points[:, 2] <= (zmax + 0.5 * dr))
+        
+        print("Interior mask created")
+        print("Analizing interior points")
+        
+        goodpoints=points[mask]/TO_METERS
+        resprov=mesh.contains(goodpoints)
+        resprovarray=np.asarray(resprov)
+        
+        mask[mask] = resprovarray
+        #mask[mask] = np.asarray(mesh.contains(points[mask]/TO_METERS))
+        print(f"Dropping {np.sum(mask)} points inside {xml_files[i][:-4]}")
+        
+        points = points[np.logical_not(mask)]
+
+@profile
+def reject_points_distance(meshes, dr, xml_files, points):
+    
+    for i, mesh in enumerate(meshes):
+        [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds*TO_METERS
+        distance = dr/TO_METERS * np.ones(len(points))
+
+        mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+            (points[:, 0] <= (xmax + 0.5 * dr)) & \
+            (points[:, 1] >= (ymin - 0.5 * dr)) & \
+            (points[:, 1] <= (ymax + 0.5 * dr)) & \
+            (points[:, 2] >= (zmin - 0.5 * dr)) & \
+            (points[:, 2] <= (zmax + 0.5 * dr))
+            
+        print("Distance mask created")
+        print("Analizing mesh points")
+        _, distance[mask], _ = mesh.nearest.on_surface(points[mask]/TO_METERS)
+        mask = distance < 0.25 * dr/TO_METERS
+        print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
+        points = points[np.logical_not(mask)]
+        
+
+def fluid_dealing(points):
+    
+    output = open("fluid.dat", "w")
+    output.write("# r.x, r.y, r.z, r.w")
+    output.write(", normal.x, normal.y, normal.z, normal.w")
+    output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
+    output.write(", u.x, u.y, u.z, u.w")
+    output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
+    output.write(", rho, drhodt, e, dedt, m, imove\n")
+    n_fluid = 0
+
+    for point in points:
+        x, y, z = point
+        imove = 1
+                
+        if x < -R -0.5*dr-0.01:
+            rho, ener, imove, velx = rho2, e2, 1, u2  
+            
+        else:
+            rho, ener, imove, velx = rho1, e1, 1, u1
+            
+        mass = rho * dr**3.0
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+            x, y, z,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            velx, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            rho,
+            0.0,
+            ener,
+            0.0,
+            mass,
+            imove)
+        output.write(string)
+        n_fluid += 1
+
+    # Bottom
+    for i in range(Nx):
+        #x = -hL - 0.5 * dr + i * dr
+        x = -hL + 0.5 * dr + i * dr
+        for j in range(Ny):
+            y = -hB + 0.5 * dr + j * dr
+            z = -hh
+            imove = -3
+            mass = dr**2.0
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+                x, y, z,
+                0.0, 0.0, -1.0,
+                -1.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                rho2,
+                0.0,
+                e2,
+                0.0,
+                mass,
+                imove)
+            output.write(string)
+            n_fluid += 1
+
+    # Top
+    for i in range(Nx):
+        #x = -hL - 0.5 * dr + i * dr
+        x = -hL + 0.5 * dr + i * dr
+        for j in range(Ny):
+            y = -hB + 0.5 * dr + j * dr
+            z = hh
+            imove = -3
+            mass = dr**2.0
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+                x, y, z,
+                0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                rho2,
+                0.0,
+                e2,
+                0.0,
+                mass,
+                imove)
+            output.write(string)
+            n_fluid += 1
+
+    # Front and back
+    for i in range(Nx):
+        #x = -hL - 0.5 * dr + i * dr
+        x = -hL + 0.5 * dr + i * dr
+        for k in range(Nz):
+            z = -hh + 0.5 * dr + k * dr
+            for j in (-1, 1):
+                y = hB * j
+                ny = j
+                imove = -3
+                mass = dr**2.0
+                string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+                    x, y, z,
+                    0.0, ny, 0.0,
+                    0.0, 0.0, -ny,
+                    0.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0,
+                    rho2,
+                    0.0,
+                    e2,
+                    0.0,
+                    mass,
+                    imove)
+                output.write(string)
+                n_fluid += 1
+                
+                
+    # two sides        
+    for j in range(Ny):
+        y = -hB + 0.5 * dr + j * dr
+        for k in range(Nz):
+            z = -hh + 0.5 * dr + k * dr
+            #for i in (-1, 1):
+            x = hL #+ dr * i
+            nx = i
+            imove = -3
+            mass = dr**2.0
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+                x, y, z,
+                nx, 0.0, 0.0,
+                0.0, 0.0, -nx,
+                0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                rho2,
+                0.0,
+                e2,
+                0.0,
+                mass,
+                imove)
+            output.write(string)
+            n_fluid += 1
+            
+    n_buffer_depth = 16
+    n_buffer = n_buffer_depth * Ny * Nz
+
+    x = hL + 2 * 2 * h
+    y = hB + 2 * 2 * h
+    z = hh + 2 * 2 * h
+    for i in range(n_buffer):
+        #n += 1
+        imove = -255       
+        mass = rho2 * dr**2.0
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+            x, y, z,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            rho2,
+            0.0,  
+            e2,
+            0.0,
+            mass,
+            imove)
+        output.write(string)
+        n_fluid += 1
+            
+    output.close()
+    
+    return n_fluid
+
 # Constants & conditions
 # ========================
 
@@ -97,105 +463,107 @@ IN_POINT = [0, 0, 0]
 
 # Read the surface mesh file and create the boundary particles
 # ============================================================
-files = [f for f in os.listdir(script_folder) if os.path.isfile(
-    os.path.join(script_folder, f))]
-files = sorted(
-    [f for f in files if f.startswith('ball.') and f.endswith('.stl')])
-files = sorted(
-    [f for f in files if not f.endswith('subdivided.stl')])
-n_balls = len(files)
+# files = [f for f in os.listdir(script_folder) if os.path.isfile(
+#     os.path.join(script_folder, f))]
+# files = sorted(
+#     [f for f in files if f.startswith('ball.') and f.endswith('.stl')])
+# files = sorted(
+#     [f for f in files if not f.endswith('subdivided.stl')])
+# n_balls = len(files)
 
-meshes = []
-xml_files = []
-prefixes = []
-bbox = np.array([[np.finfo(np.float64).max,
-                  np.finfo(np.float64).max,
-                  np.finfo(np.float64).max],
-                 [np.finfo(np.float64).min,
-                  np.finfo(np.float64).min,
-                  np.finfo(np.float64).min]])
+# meshes = []
+# xml_files = []
+# prefixes = []
+# bbox = np.array([[np.finfo(np.float64).max,
+#                   np.finfo(np.float64).max,
+#                   np.finfo(np.float64).max],
+#                  [np.finfo(np.float64).min,
+#                   np.finfo(np.float64).min,
+#                   np.finfo(np.float64).min]])
 
-for i, f in enumerate(files):
-    fout = f[:-4] + ".subdivided.stl"
-    mesh = trimesh.load(os.path.join(script_folder, f))
-    meshes.append(mesh)
-    new_v, new_f = trimesh.remesh.subdivide_to_size(mesh.vertices,
-                                                    mesh.faces,
-                                                    dr*1000)
+# for i, f in enumerate(files):
+#     fout = f[:-4] + ".subdivided.stl"
+#     mesh = trimesh.load(os.path.join(script_folder, f))
+#     meshes.append(mesh)
+#     new_v, new_f = trimesh.remesh.subdivide_to_size(mesh.vertices,
+#                                                     mesh.faces,
+#                                                     dr*1000)
+5
+#     mesh = trimesh.Trimesh(vertices=new_v, faces=new_f)
+#     mesh.export(fout)
+#     mesh = meshio.read(os.path.join(script_folder, fout))
+#     fout = f[:-4] + ".dat"
+#     print(f"Writing {fout}...")
+#     output = open(f"{fout}", "w")
+#     output.write("# r.x, r.y, r.z, r.w")
+#     output.write(", normal.x, normal.y, normal.z, normal.w")
+#     output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
+#     output.write(", u.x, u.y, u.z, u.w")
+#     output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
+#     output.write(", rho, drhodt, e, dedt, m, imove\n")
+#     n_parts = 0
+#     verts = mesh.points
+#     for cell in mesh.cells:
+#         def triangle(cell, verts):
+#             a, b, c = [verts[i]*TO_METERS for i in cell]
+#             r = np.mean([a, b, c], axis=0)
+#             t = b - a
+#             n = np.cross(b - a, c - a)
+#             s = 0.5 * np.linalg.norm(n)
+#             t /= np.linalg.norm(t)
+#             n /= 2.0 * s
+#             n = -n  # Inwards normals
+#             return r, n, t, s
 
-    mesh = trimesh.Trimesh(vertices=new_v, faces=new_f)
-    mesh.export(fout)
-    mesh = meshio.read(os.path.join(script_folder, fout))
-    fout = f[:-4] + ".dat"
-    print(f"Writing {fout}...")
-    output = open(f"{fout}", "w")
-    output.write("# r.x, r.y, r.z, r.w")
-    output.write(", normal.x, normal.y, normal.z, normal.w")
-    output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
-    output.write(", u.x, u.y, u.z, u.w")
-    output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
-    output.write(", rho, drhodt, e, dedt, m, imove\n")
-    n_parts = 0
-    verts = mesh.points
-    for cell in mesh.cells:
-        def triangle(cell, verts):
-            a, b, c = [verts[i]*TO_METERS for i in cell]
-            r = np.mean([a, b, c], axis=0)
-            t = b - a
-            n = np.cross(b - a, c - a)
-            s = 0.5 * np.linalg.norm(n)
-            t /= np.linalg.norm(t)
-            n /= 2.0 * s
-            n = -n  # Inwards normals
-            return r, n, t, s
+#         for elem in cell.data:
+#             r, n, t, s = triangle(elem, verts)
+#             bbox[0] = np.min((bbox[0], r), axis=0)
+#             bbox[1] = np.max((bbox[1], r), axis=0)
+#             #dens = refd
+#             imove = -3
+#             string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+#                 r[0], r[1], r[2],
+#                 n[0], n[1], n[2],
+#                 t[0], t[1], t[2],
+#                 0.0, 0.0, 0.0,
+#                 0.0, 0.0, 0.0,
+#                 rhop,
+#                 0.0,
+#                 e2,
+#                 0.0,
+#                 s,
+#                 imove)
 
-        for elem in cell.data:
-            r, n, t, s = triangle(elem, verts)
-            bbox[0] = np.min((bbox[0], r), axis=0)
-            bbox[1] = np.max((bbox[1], r), axis=0)
-            #dens = refd
-            imove = -3
-            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-                r[0], r[1], r[2],
-                n[0], n[1], n[2],
-                t[0], t[1], t[2],
-                0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0,
-                rhop,
-                0.0,
-                e2,
-                0.0,
-                s,
-                imove)
+#             output.write(string)
+#             n_parts += 1
+#     output.close()
 
-            output.write(string)
-            n_parts += 1
-    output.close()
+#     prefix = fout[:-4].replace('.', '_') + '_'
+#     prefixes.append(prefix)
+#     data = {'N_PARTS':str(n_parts), 'REFD':str(rhop),
+#             'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
+#             'FIN':fout, 'FOUT':fout[:-4], 'PREFIX':prefix, 'ISET':str(i + 1)}
+#     utils.configure(data, os.path.join(script_folder, "ball_template"))
+#     fout = f[:-4] + ".xml"
+#     print(f"Writing {fout}...")
+#     os.rename('ball.xml', fout)
+#     xml_files.append(fout)
 
-    prefix = fout[:-4].replace('.', '_') + '_'
-    prefixes.append(prefix)
-    data = {'N_PARTS':str(n_parts), 'REFD':str(rhop),
-            'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-            'FIN':fout, 'FOUT':fout[:-4], 'PREFIX':prefix, 'ISET':str(i + 1)}
-    utils.configure(data, os.path.join(script_folder, "ball_template"))
-    fout = f[:-4] + ".xml"
-    print(f"Writing {fout}...")
-    os.rename('ball.xml', fout)
-    xml_files.append(fout)
+# # Write a general reader to be included from Main.xml
+# with open("balls.xml", "w") as f:
+#     f.write("<sphInput>\n")
+#     for xml in xml_files:
+#         f.write(f'\t<Include file="{xml}" />\n')
+#     f.write("\t<Tools>\n")
+#     for prefix in prefixes[1:]:
+#         f.write(f'\t\t<Tool name="{prefix}cfd BIe backup p" action="try_remove" type="dummy"></Tool>\n')
+#         f.write(f'\t\t<Tool name="{prefix}cfd BIe backup force_visc" action="try_remove" type="dummy"></Tool>\n')
+#         f.write(f'\t\t<Tool name="{prefix}cfd BIe backup moment_visc" action="try_remove" type="dummy"></Tool>\n')
+#     f.write("\t</Tools>\n")
+#     f.write("</sphInput>\n")
 
-# Write a general reader to be included from Main.xml
-with open("balls.xml", "w") as f:
-    f.write("<sphInput>\n")
-    for xml in xml_files:
-        f.write(f'\t<Include file="{xml}" />\n')
-    f.write("\t<Tools>\n")
-    for prefix in prefixes[1:]:
-        f.write(f'\t\t<Tool name="{prefix}cfd BIe backup p" action="try_remove" type="dummy"></Tool>\n')
-        f.write(f'\t\t<Tool name="{prefix}cfd BIe backup force_visc" action="try_remove" type="dummy"></Tool>\n')
-        f.write(f'\t\t<Tool name="{prefix}cfd BIe backup moment_visc" action="try_remove" type="dummy"></Tool>\n')
-    f.write("\t</Tools>\n")
-    f.write("</sphInput>\n")
 
+n_balls, meshes, xml_files, prefixes, bbox = read_mesh_create_surface()
 # Fluid
 # ============
 
@@ -227,195 +595,199 @@ print(f"{len(points)} candidate points")
 
 # Removing points in the sphere
 # ================================
-for i, mesh in enumerate(meshes):
-    [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds*TO_METERS
-    mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
-           (points[:, 0] <= (xmax + 0.5 * dr)) & \
-           (points[:, 1] >= (ymin - 0.5 * dr)) & \
-           (points[:, 1] <= (ymax + 0.5 * dr)) & \
-           (points[:, 2] >= (zmin - 0.5 * dr)) & \
-           (points[:, 2] <= (zmax + 0.5 * dr))
-    mask[mask] = np.asarray(mesh.contains(points[mask]/TO_METERS))
-    print(f"Dropping {np.sum(mask)} points inside {xml_files[i][:-4]}")
-    points = points[np.logical_not(mask)]
-    distance = dr/TO_METERS * np.ones(len(points))
-    mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
-           (points[:, 0] <= (xmax + 0.5 * dr)) & \
-           (points[:, 1] >= (ymin - 0.5 * dr)) & \
-           (points[:, 1] <= (ymax + 0.5 * dr)) & \
-           (points[:, 2] >= (zmin - 0.5 * dr)) & \
-           (points[:, 2] <= (zmax + 0.5 * dr))
-    _, distance[mask], _ = mesh.nearest.on_surface(points[mask]/TO_METERS)
-    mask = distance < 0.25 * dr/TO_METERS
-    print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
-    points = points[np.logical_not(mask)]
+# for i, mesh in enumerate(meshes):
+#     [[xmin, ymin, zmin], [xmax, ymax, zmax]] = mesh.bounds*TO_METERS
+#     mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+#            (points[:, 0] <= (xmax + 0.5 * dr)) & \
+#            (points[:, 1] >= (ymin - 0.5 * dr)) & \
+#            (points[:, 1] <= (ymax + 0.5 * dr)) & \
+#            (points[:, 2] >= (zmin - 0.5 * dr)) & \
+#            (points[:, 2] <= (zmax + 0.5 * dr))
+#     mask[mask] = np.asarray(mesh.contains(points[mask]/TO_METERS))
+#     print(f"Dropping {np.sum(mask)} points inside {xml_files[i][:-4]}")
+#     points = points[np.logical_not(mask)]
+#     distance = dr/TO_METERS * np.ones(len(points))
+#     mask = (points[:, 0] >= (xmin - 0.5 * dr)) & \
+#            (points[:, 0] <= (xmax + 0.5 * dr)) & \
+#            (points[:, 1] >= (ymin - 0.5 * dr)) & \
+#            (points[:, 1] <= (ymax + 0.5 * dr)) & \
+#            (points[:, 2] >= (zmin - 0.5 * dr)) & \
+#            (points[:, 2] <= (zmax + 0.5 * dr))
+#     _, distance[mask], _ = mesh.nearest.on_surface(points[mask]/TO_METERS)
+#     mask = distance < 0.25 * dr/TO_METERS
+#     print(f"Dropping {np.sum(mask)} points too close to {xml_files[i][:-4]}")
+#     points = points[np.logical_not(mask)]
 
 # Go for the remaining points
 # =============================
+reject_points_all(meshes, dr, xml_files, points)
 
-output = open("fluid.dat", "w")
-output.write("# r.x, r.y, r.z, r.w")
-output.write(", normal.x, normal.y, normal.z, normal.w")
-output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
-output.write(", u.x, u.y, u.z, u.w")
-output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
-output.write(", rho, drhodt, e, dedt, m, imove\n")
-n_fluid = 0
 
-for point in points:
-    x, y, z = point
-    imove = 1
+# output = open("fluid.dat", "w")
+# output.write("# r.x, r.y, r.z, r.w")
+# output.write(", normal.x, normal.y, normal.z, normal.w")
+# output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
+# output.write(", u.x, u.y, u.z, u.w")
+# output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
+# output.write(", rho, drhodt, e, dedt, m, imove\n")
+# n_fluid = 0
+
+# for point in points:
+#     x, y, z = point
+#     imove = 1
     
-    mod=np.sqrt(x*x+y*y+z*z)
+#     mod=np.sqrt(x*x+y*y+z*z)
     
-    if x < -R -0.5*dr-0.01:
-        rho, ener, imove, velx = rho2, e2, 1, u2  
+#     if x < -R -0.5*dr-0.01:
+#         rho, ener, imove, velx = rho2, e2, 1, u2  
         
-    else:
-        rho, ener, imove, velx = rho1, e1, 1, u1
+#     else:
+#         rho, ener, imove, velx = rho1, e1, 1, u1
         
-    mass = rho * dr**3.0
-    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-        x, y, z,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        velx, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        rho,
-        0.0,
-        ener,
-        0.0,
-        mass,
-        imove)
-    output.write(string)
-    n_fluid += 1
+#     mass = rho * dr**3.0
+#     string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+#         x, y, z,
+#         0.0, 0.0, 0.0,
+#         0.0, 0.0, 0.0,
+#         velx, 0.0, 0.0,
+#         0.0, 0.0, 0.0,
+#         rho,
+#         0.0,
+#         ener,
+#         0.0,
+#         mass,
+#         imove)
+#     output.write(string)
+#     n_fluid += 1
 
-# Bottom
-for i in range(Nx):
-    #x = -hL - 0.5 * dr + i * dr
-    x = -hL + 0.5 * dr + i * dr
-    for j in range(Ny):
-        y = -hB + 0.5 * dr + j * dr
-        z = -hh
-        imove = -3
-        mass = dr**2.0
-        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-            x, y, z,
-            0.0, 0.0, -1.0,
-            -1.0, 0.0, 0.0,
-            0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0,
-            rho2,
-            0.0,
-            e2,
-            0.0,
-            mass,
-            imove)
-        output.write(string)
-        n_fluid += 1
+# # Bottom
+# for i in range(Nx):
+#     #x = -hL - 0.5 * dr + i * dr
+#     x = -hL + 0.5 * dr + i * dr
+#     for j in range(Ny):
+#         y = -hB + 0.5 * dr + j * dr
+#         z = -hh
+#         imove = -3
+#         mass = dr**2.0
+#         string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+#             x, y, z,
+#             0.0, 0.0, -1.0,
+#             -1.0, 0.0, 0.0,
+#             0.0, 0.0, 0.0,
+#             0.0, 0.0, 0.0,
+#             rho2,
+#             0.0,
+#             e2,
+#             0.0,
+#             mass,
+#             imove)
+#         output.write(string)
+#         n_fluid += 1
 
-# Top
-for i in range(Nx):
-    #x = -hL - 0.5 * dr + i * dr
-    x = -hL + 0.5 * dr + i * dr
-    for j in range(Ny):
-        y = -hB + 0.5 * dr + j * dr
-        z = hh
-        imove = -3
-        mass = dr**2.0
-        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-            x, y, z,
-            0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0,
-            0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0,
-            rho2,
-            0.0,
-            e2,
-            0.0,
-            mass,
-            imove)
-        output.write(string)
-        n_fluid += 1
+# # Top
+# for i in range(Nx):
+#     #x = -hL - 0.5 * dr + i * dr
+#     x = -hL + 0.5 * dr + i * dr
+#     for j in range(Ny):
+#         y = -hB + 0.5 * dr + j * dr
+#         z = hh
+#         imove = -3
+#         mass = dr**2.0
+#         string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+#             x, y, z,
+#             0.0, 0.0, 1.0,
+#             1.0, 0.0, 0.0,
+#             0.0, 0.0, 0.0,
+#             0.0, 0.0, 0.0,
+#             rho2,
+#             0.0,
+#             e2,
+#             0.0,
+#             mass,
+#             imove)
+#         output.write(string)
+#         n_fluid += 1
 
-# Front and back
-for i in range(Nx):
-    #x = -hL - 0.5 * dr + i * dr
-    x = -hL + 0.5 * dr + i * dr
-    for k in range(Nz):
-        z = -hh + 0.5 * dr + k * dr
-        for j in (-1, 1):
-            y = hB * j
-            ny = j
-            imove = -3
-            mass = dr**2.0
-            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-                x, y, z,
-                0.0, ny, 0.0,
-                0.0, 0.0, -ny,
-                0.0, 0.0, 0.0,
-                0.0, 0.0, 0.0,
-                rho2,
-                0.0,
-                e2,
-                0.0,
-                mass,
-                imove)
-            output.write(string)
-            n_fluid += 1
+# # Front and back
+# for i in range(Nx):
+#     #x = -hL - 0.5 * dr + i * dr
+#     x = -hL + 0.5 * dr + i * dr
+#     for k in range(Nz):
+#         z = -hh + 0.5 * dr + k * dr
+#         for j in (-1, 1):
+#             y = hB * j
+#             ny = j
+#             imove = -3
+#             mass = dr**2.0
+#             string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+#                 x, y, z,
+#                 0.0, ny, 0.0,
+#                 0.0, 0.0, -ny,
+#                 0.0, 0.0, 0.0,
+#                 0.0, 0.0, 0.0,
+#                 rho2,
+#                 0.0,
+#                 e2,
+#                 0.0,
+#                 mass,
+#                 imove)
+#             output.write(string)
+#             n_fluid += 1
             
             
-# two sides        
-for j in range(Ny):
-    y = -hB + 0.5 * dr + j * dr
-    for k in range(Nz):
-        z = -hh + 0.5 * dr + k * dr
-        #for i in (-1, 1):
-        x = hL #+ dr * i
-        nx = i
-        imove = -3
-        mass = dr**2.0
-        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-            x, y, z,
-            nx, 0.0, 0.0,
-            0.0, 0.0, -nx,
-            0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0,
-            rho2,
-            0.0,
-            e2,
-            0.0,
-            mass,
-            imove)
-        output.write(string)
-        n_fluid += 1
+# # two sides        
+# for j in range(Ny):
+#     y = -hB + 0.5 * dr + j * dr
+#     for k in range(Nz):
+#         z = -hh + 0.5 * dr + k * dr
+#         #for i in (-1, 1):
+#         x = hL #+ dr * i
+#         nx = i
+#         imove = -3
+#         mass = dr**2.0
+#         string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+#             x, y, z,
+#             nx, 0.0, 0.0,
+#             0.0, 0.0, -nx,
+#             0.0, 0.0, 0.0,
+#             0.0, 0.0, 0.0,
+#             rho2,
+#             0.0,
+#             e2,
+#             0.0,
+#             mass,
+#             imove)
+#         output.write(string)
+#         n_fluid += 1
         
-n_buffer_depth = 16
-n_buffer = n_buffer_depth * Ny * Nz
+# n_buffer_depth = 16
+# n_buffer = n_buffer_depth * Ny * Nz
 
-x = hL + 2 * 2 * h
-y = hB + 2 * 2 * h
-z = hh + 2 * 2 * h
-for i in range(n_buffer):
-    n += 1
-    imove = -255       
-    mass = rho2 * dr**2.0
-    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-        x, y, z,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        rho2,
-        0.0,  
-        e2,
-        0.0,
-        mass,
-        imove)
-    output.write(string)
-    n_fluid += 1
+# x = hL + 2 * 2 * h
+# y = hB + 2 * 2 * h
+# z = hh + 2 * 2 * h
+# for i in range(n_buffer):
+#     #n += 1
+#     imove = -255       
+#     mass = rho2 * dr**2.0
+#     string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+#         x, y, z,
+#         0.0, 0.0, 0.0,
+#         0.0, 0.0, 0.0,
+#         0.0, 0.0, 0.0,
+#         0.0, 0.0, 0.0,
+#         rho2,
+#         0.0,  
+#         e2,
+#         0.0,
+#         mass,
+#         imove)
+#     output.write(string)
+#     n_fluid += 1
           
-output.close()
+# output.close()
+
+n_fluid = fluid_dealing(points)
 
 domain_min = (-hL, -hB, -hh, 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')

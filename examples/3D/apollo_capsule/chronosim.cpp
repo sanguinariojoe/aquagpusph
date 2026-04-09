@@ -40,23 +40,17 @@ extern "C" Aqua::CalcServer::ApolloSim* create_object(
 
 namespace Aqua{ namespace CalcServer{
 
-// Arcane meaning for non-initiated
-// initiates a tool element. Aqua inner I undertand. What is this exactly?
+// initiates a tool element. Aqua inner 
 ApolloSim::ApolloSim(const std::string name, bool once)
     : Tool(name, once)
 {
 }
 
 // Destructor
-// Default destructor without memory
-// handling should be automatically done
-// why to have it explicitly?
 ApolloSim::~ApolloSim()
 {
 }
 
-//I think this variables should be removed or commented.
-//All usage has been commented in lines bellow
 #define LB2KG 0.4535924
 #define IN2M 0.0254
 
@@ -65,7 +59,7 @@ ApolloSim::setup()
 {
     printf("Chronosim: Starting the setup\n");
     
-    //Tool is Aqua I believe
+    //Tool is Aqua 
     Tool::setup();
 
     // Get the configuration variables
@@ -73,7 +67,7 @@ ApolloSim::setup()
 
     _pitch = *((float*)vars->get("pitch")->get(true));
     _vel = *((float*)vars->get("u0")->get(true));
-    _cogz = *((float*)vars->get("cogz")->get(true)); //what is this? center of gravity?
+    _cogz = *((float*)vars->get("cogz")->get(true)); //center of gravity
     _pitch *= M_PI / 180.0; // in modern usage, utilization of std::numbers::pi better than M_PI
 
     // Setup the chrono system
@@ -111,7 +105,7 @@ ApolloSim::setup()
     // Pitching Angle on Space Capsule Water Landing Using Smooth Particle
     // Hydrodynamic Method
 
-    //mass direcly introduced as known
+    //mass direcly introduced as known given value
     _apollo->SetMass(3900);
 
     // Set the diagonal moments of innertia $I_{xx}$, $I_{yy}$, $I_{zz}$
@@ -145,7 +139,7 @@ ApolloSim::setup()
     chrono::ChQuaternion<double> R;
     //cardan angles known, set them inside
     R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, _pitch, 0));
-    //give initial turn
+    //give initial turn angles
     _apollo->SetRot(R);
 
     _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);//define time integrator
@@ -219,13 +213,11 @@ setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
  * @param
  * @return This munction returns a cl_event that 
  * is fixed to NULL
- * I do not know why this is ok
- * I do not know why not a nullptr is used
  */
 cl_event
 ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {   
-    // arcane type of aqua
+    // type of aqua
     auto vars = CalcServer::singleton()->variables();
 
     // Check whether we are on the midpoint, or at the final iteration
@@ -234,10 +226,12 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     const unsigned int iter_max =
         *((unsigned int*)vars->get("iter_midpoint_max")->get(true));
     const bool is_midpoint = iter < iter_max;
+
     // Get the forces from AQUAgpusph
-    //get the timestep, convert to float* deindiriction
+    // get the timestep, convert to float* deindiriction
     float dt = *((float*)vars->get("dt")->get(true));
-    //get force and momentum from aqua
+
+    // get force and momentum from aqua
     // forces and moments are know at this stage
     // that is the singleton object know them
     const vec4 F = *((vec4*)vars->get("Force_p_iset")->get(true));
@@ -245,7 +239,7 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 
     if (iter == 0) {
         // At the beggining of the time step we must copy the results from
-        // the other instance of this solver ?????????????
+        // the other instance of this solver 
         vec4 data;
         chrono::ChQuaternion<double> R;
 
@@ -275,7 +269,7 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     double T = _sys->GetChTime();//current simulation time
 
     // GetNumCoordsPosLevel: integer representing the total number of 
-    //coordinates (degrees of freedom) at the position level currently in your simulation
+    // coordinates (degrees of freedom) at the position level currently in your simulation
     // _sys.get() returns the raw pointer to the memory address where the system lives
     // chrono::ChState initializing a chrono::ChState object. 
     // This is a specialized container used by Chrono to store the entire "Position Level" 
@@ -286,10 +280,11 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     chrono::ChStateDelta V(_sys->GetNumCoordsVelLevel(), _sys.get());
     chrono::ChStateDelta A(_sys->GetNumCoordsVelLevel(), _sys.get());
 
-    //_sys->GetNumConstraints() returns an integer representing the 
+    // _sys->GetNumConstraints() returns an integer representing the 
     // total number of scalar constraint equations currently active in your system 
     // L(sys->GetNumConstraints()), creates a container specifically
-    // designed to hold the Lagrange Multipliers (λ) for your simulation.
+    // designed to hold the Lagrange Multipliers (λ) for simulation.
+    // applied to constrains
     chrono::ChVectorDynamic<> L(_sys->GetNumConstraints());
 
     //get vels and accelerations
