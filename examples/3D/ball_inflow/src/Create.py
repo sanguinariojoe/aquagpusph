@@ -42,7 +42,7 @@ import meshio
 import platform
 import math
 
-from memory_profiler import profile
+#from memory_profiler import profile
 
 def read_mesh_create_surface():
     
@@ -155,7 +155,7 @@ def read_mesh_create_surface():
     
     return n_balls, meshes, xml_files, prefixes, bbox
 
-@profile
+#@profile
 def reject_points(meshes, dr, xml_files, points):
     
     for i, mesh in enumerate(meshes):
@@ -195,7 +195,7 @@ def reject_points_all(meshes, dr, xml_files, points):
     reject_points_interior(meshes, dr, xml_files, points)
     reject_points_distance(meshes, dr, xml_files, points)
 
-@profile
+#@profile
 def reject_points_interior(meshes, dr, xml_files, points):
     
     for i, mesh in enumerate(meshes):
@@ -220,7 +220,7 @@ def reject_points_interior(meshes, dr, xml_files, points):
         
         points = points[np.logical_not(mask)]
 
-@profile
+#@profile
 def reject_points_distance(meshes, dr, xml_files, points):
     
     for i, mesh in enumerate(meshes):

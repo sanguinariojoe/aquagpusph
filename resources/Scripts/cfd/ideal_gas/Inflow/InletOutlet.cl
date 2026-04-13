@@ -115,6 +115,7 @@ __kernel void values(const __global int* restrict imove,
                      float io_eint, 
                      float io_gamma)
 {
+    //printf("reaches inlet-outlet\n");
     const usize i = get_global_id(0);
     if(i >= N)
         return;
@@ -143,4 +144,12 @@ __kernel void values(const __global int* restrict imove,
     u[i] = (uref + 1.f / (2.f * rho[i] * cs_i) * (j2[i] - j3[i])) * io_n;
     p[i] = pref + 0.5f * (j2[i] + j3[i]);
     eint[i] = eint_from_rho_p(gamma[iset[i]], rho[i], p[i]);
+    
+    printf("\n");    
+    printf("Routine values:\n");
+    printf("Inlet-outlet rho: %g\n", rho[i]);
+    printf("Inlet-outlet p: %g\n", p[i]);
+    printf("Inlet-outlet eint: %g\n", eint[i]);
+    printf("Inlet-outlet velocity: %g, %g, %g\n", u[i].x, u[i].y, u[i].z);
+    printf("\n");
 }

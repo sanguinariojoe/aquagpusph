@@ -92,6 +92,7 @@ feed(__global int* restrict imove,
      __global float* restrict gamma,
      __global float* restrict deintdt)
 {
+	//printf("reaches feed\n");
 	// find position in global arrays
 	const usize i = get_global_id(0);
 	if (inflow_starving == 0)
@@ -134,6 +135,15 @@ feed(__global int* restrict imove,
 	deintdt[ii] = 0.f;
 	gamma[ii] = inflow_gamma;
 	p[ii] = p_from_rho_eint(inflow_gamma, inflow_rho, inflow_eint);
+
+
+	printf("\n");
+	printf("routine feed\n");
+    printf("Inlet-outlet rho: %g\n", rho[ii]);
+    printf("Inlet-outlet p: %g\n", p[ii]);
+    printf("Inlet-outlet eint: %g\n", eint[ii]);
+    printf("Inlet-outlet velocity: %g, %g, %g\n", u[ii].x, u[ii].y, u[ii].z);
+	printf("\n");
 }
 
 /** @brief Vanish the velocity and desnity rates of variation of the velocity
@@ -180,4 +190,14 @@ rates(__global int* restrict imove,
 	dudt[i] = VEC_ZERO;
 	drhodt[i] = 0.f;
 	deintdt[i] = 0.f;
+
+	printf("\n");
+
+	printf("routine rates\n");
+    printf("Inlet-outlet rho: %g\n", drhodt[i]);
+    printf("Inlet-outlet eint: %g\n", deintdt[i]);
+    printf("Inlet-outlet velocity: %g, %g, %g\n", u[i].x, u[i].y, u[i].z);
+	printf("Inlet-outlet dudt: %g, %g, %g\n", dudt[i].x, dudt[i].y, dudt[i].z);
+
+	printf("\n");
 }
