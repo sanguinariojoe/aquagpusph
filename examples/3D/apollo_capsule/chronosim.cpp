@@ -26,12 +26,15 @@
 #include <aquagpusph/InputOutput/Logger.hpp>
 #include <cmath>
 
-/** @brief Creates a function "create_object" that returns a 
-           ApolloSim object. ApolloSim is the derived class 
-           from Aqua::CalcServer::Tool
-           Extern "C" makes this C namestyle
-    @return ApolloSim object
-*/
+/**
+ * @brief C API entry for AQUAgpusph.
+ * AQUAgpusph will call this function to receive an 
+ * Aqua::CalcServer::Tool derived object.
+ * The later, in turn, 
+ * will be afterwards considered by any other tool.
+ * 
+ */
+
 extern "C" Aqua::CalcServer::ApolloSim* create_object(
     const std::string name, bool once)
 {
@@ -46,7 +49,6 @@ ApolloSim::ApolloSim(const std::string name, bool once)
 {
 }
 
-// Destructor
 ApolloSim::~ApolloSim()
 {
 }
@@ -65,10 +67,12 @@ ApolloSim::setup()
     // Get the configuration variables
     auto vars = CalcServer::singleton()->variables();
 
+    // setting up the variables
+    // variables documeneted in header file
     _pitch = *((float*)vars->get("pitch")->get(true));
     _vel = *((float*)vars->get("u0")->get(true));
-    _cogz = *((float*)vars->get("cogz")->get(true)); //center of gravity
-    _pitch *= M_PI / 180.0; // in modern usage, utilization of std::numbers::pi better than M_PI
+    _cogz = *((float*)vars->get("cogz")->get(true)); 
+    _pitch *= std::numbers::pi / 180.0; 
 
     // Setup the chrono system
     // ChSystemNSC Non-Smooth Contact 
