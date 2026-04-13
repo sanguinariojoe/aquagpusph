@@ -116,23 +116,37 @@ ApolloSim::setup()
     _apollo->SetInertiaXX(chrono::ChVector3d(5560, 5270, 4180));
 
     //define the parameters of the force
-    _force->SetMode(chrono::ChForce::FORCE);// force and not torque
-    _force->SetFrame(chrono::ChForce::BODY);// Even as the body flies across the map, the force stays perfectly centered on the body's mass.
-    _force->SetAlign(chrono::ChForce::WORLD_DIR);// This defines the Direction where the vector points. The direction of the force is fixed relative to the Inertial World Frame (the X, Y, Z axes of the universe).
-        // Even if the ball starts tumbling or spinning at high speeds after the impact, the force will always point in the same direction (e.g., always pushing "East").
-    _force->SetVrelpoint(chrono::ChVector3d(0, 0, 0));// It is set at the point (0,0,0), the force is "attached" to the center of the body.
+
+    // force and not torque
+    _force->SetMode(chrono::ChForce::FORCE);
+    // Even as the body flies across the map, the force stays perfectly centered on the body's mass.
+    _force->SetFrame(chrono::ChForce::BODY);
+    // This defines the Direction where the vector points. 
+    // The direction of the force is fixed relative to the 
+    // Inertial World Frame (the X, Y, Z axes of the universe).
+    // Even if the ball starts tumbling or spinning at high speeds 
+    // after the impact, the force will always point in the same 
+    // direction (e.g., always pushing "East").
+    _force->SetAlign(chrono::ChForce::WORLD_DIR);
+    
+    // It is set at the point (0,0,0), the force is "attached" to the center of the body.
+    _force->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
     
     
     //define the paramter of the momentum
-    _moment->SetMode(chrono::ChForce::TORQUE);// torque and not force
-    _moment->SetFrame(chrono::ChForce::BODY);// Even as the body flies across the map, the force stays perfectly centered on the body's mass.
-    _moment->SetAlign(chrono::ChForce::WORLD_DIR);// This defines the Direction where the vector points. The direction of the force is fixed relative to the Inertial World Frame (the X, Y, Z axes of the universe).
-        // Even if the ball starts tumbling or spinning at high speeds after the impact, the force will always point in the same direction (e.g., always pushing "East").
-    _moment->SetVrelpoint(chrono::ChVector3d(0, 0, 0));// It is set at the point (0,0,0), the force is "attached" to the center of the body.
+    // torque and not force
+    _moment->SetMode(chrono::ChForce::TORQUE);
+    // see above
+    _moment->SetFrame(chrono::ChForce::BODY);
+    // see above
+    _moment->SetAlign(chrono::ChForce::WORLD_DIR);
+    // see above
+    _moment->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
 
-
-    _apollo->SetPos(chrono::ChVector3d(0, 0, _cogz));// moving the body back to its cog? maybe in z direction?
-    _apollo->SetLinVel(chrono::ChVector3d(0, 0, -_vel));// initial velocity
+    // moving the body back to its cog? maybe in z direction?
+    _apollo->SetPos(chrono::ChVector3d(0, 0, _cogz));
+    // initial velocity
+    _apollo->SetLinVel(chrono::ChVector3d(0, 0, -_vel));
 
     // On NWU coordinates:
     //    x : Positive moment = positive roll = portside goes up
@@ -141,17 +155,17 @@ ApolloSim::setup()
 
     //create a cuaternion
     chrono::ChQuaternion<double> R;
-    //cardan angles known, set them inside
+    // cardan angles known, set them inside
     R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, _pitch, 0));
-    //give initial turn angles
+    // give initial turn angles
     _apollo->SetRot(R);
 
     _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);//define time integrator
 
     _sys->Setup();//final step before one enters the simulation loop
 
-    //custom co-simulation wrappers
-    //setting which variables must be updated or satisfied
+    // custom co-simulation wrappers
+    // setting which variables must be updated or satisfied
     // before the next calculation step can proceed
 
     //maybe defined by the use of midpoint integrator
@@ -159,8 +173,8 @@ ApolloSim::setup()
     setInputDependencies({"dt", "iter_midpoint", "iter_midpoint_max",
                           "Force_p_iset", "Moment_p_iset"});
     
-    //defines what the system writes or provides to other 
-    //modules after a calculation is finished.
+    // defines what the system writes or provides to other 
+    // modules after a calculation is finished.
     setOutputDependencies({"motion_r", "motion_drdt", "motion_ddrddt",
                            "motion_a", "motion_dadt", "motion_ddaddt",
                            "forces_r"});
