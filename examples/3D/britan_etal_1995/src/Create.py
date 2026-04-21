@@ -99,7 +99,7 @@ IN_POINT = [0, 0, 0]
 
 # Get the number of subdivions of the icosphere so we get so far the same
 # distance than dr
-s = np.log(dr / R) / np.log(0.5)
+s = int(np.ceil(np.log(dr / R) / np.log(0.5)))
 mesh = trimesh.creation.icosphere(subdivisions=s, radius=R)
 print("Writing ball...")
 n_ball = len(mesh.faces)
