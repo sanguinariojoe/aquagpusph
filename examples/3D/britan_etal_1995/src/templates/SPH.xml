@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    https://aquagpusph.org/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="g" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
+        <Variable name="dr" type="float" value="{{DR}}" />
+        <Variable name="hfac" type="float" value="{{HFAC}}" />
+        <Variable name="h" type="float" value="hfac * dr" />
+        <Variable name="cs" type="float" value="{{CS}}" />
+        <Variable name="courant" type="float" value="{{COURANT}}" />
+        <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
+        <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="15"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="0.0"/>
+        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-6" symbol="E_{\Delta t}^{max}"/>
+        <Variable name="Residual_midpoint_mindec" type="float" length="1" value="1.0 / 5.0" symbol="E_{\Delta t} / E_{\Delta t,m-1}"/>
+        <Variable name="relax_midpoint_inc" type="float" length="1" value="0.1" symbol="f_{\Delta t,0}"/>
+        <Variable name="L" type="float" value="{{L}}" />
+        <Variable name="B" type="float" value="{{B}}" />        
+        <Variable name="H" type="float" value="{{H}}" />
+        <Variable name="R" type="float" value="{{R}}" />
+        <Variable name="RHOP" type="float" value="{{RHOP}}" />
+        <Variable name="n_ball" type="unsigned int" value="{{n_ball}}" />
+    </Variables>
+</sphInput>

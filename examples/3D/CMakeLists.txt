@@ -8,6 +8,7 @@ endif(HAVE_MPI)
 
 if(HAVE_CHRONO)
     add_subdirectory(apollo_capsule)
+    add_subdirectory(britan_etal_1995)
     add_subdirectory(flow_through_rocks)
     add_subdirectory(shock_rocks_BIe)
 endif(HAVE_CHRONO)
