@@ -201,10 +201,12 @@ for point in points:
 # Create the shock chamber walls
 # ==============================
 # Bottom
-for i in range(Nx):
-    x = -hL - 0.5 * dr + i * dr
-    for j in range(Ny):
-        y = -hB + 0.5 * dr + j * dr
+for i in range(Nx-1):
+    #x = -hL + 0.5 * dr + i * dr
+    x = -hL + dr + i * dr
+    for j in range(Ny-1):
+        #y = -hB + 0.5 * dr + j * dr
+        y = -hB + dr + j * dr
         z = -hh
         imove = -3
         mass = dr**2.0
@@ -224,10 +226,12 @@ for i in range(Nx):
         n_fluid += 1
 
 # Top
-for i in range(Nx):
-    x = -hL - 0.5 * dr + i * dr
-    for j in range(Ny):
-        y = -hB + 0.5 * dr + j * dr
+for i in range(Nx-1):
+#    x = -hL + 0.5 * dr + i * dr
+    x = -hL + dr + i * dr
+    for j in range(Ny-1):
+ #       y = -hB + 0.5 * dr + j * dr
+        y = -hB + dr + j * dr
         z = hh
         imove = -3
         mass = dr**2.0
@@ -247,10 +251,12 @@ for i in range(Nx):
         n_fluid += 1
 
 # Front and back
-for i in range(Nx):
-    x = -hL - 0.5 * dr + i * dr
-    for k in range(Nz):
-        z = -hh + 0.5 * dr + k * dr
+for i in range(Nx-1):
+#    x = -hL + 0.5 * dr + i * dr
+    x = -hL + dr + i * dr
+    for k in range(Nz+1):
+        #z = -hh + 0.5 * dr + k * dr* 0.5
+        z = -hh + k * dr
         for j in (-1, 1):
             y = hB * j
             ny = j
@@ -273,10 +279,12 @@ for i in range(Nx):
             
             
 # Left and Right
-for j in range(Ny):
-    y = -hB - 0.5 * dr + j * dr
-    for k in range(Nz):
-        z = -hh + 0.5 * dr + k * dr
+for j in range(Ny+1):
+    #y = -hB + 0.5 * dr + j * dr* 0.5
+    y = -hB + j * dr
+    for k in range(Nz+1):
+        #z = -hh + 0.5 * dr + k * dr* 0.5
+        z = -hh + k * dr
         for i in (-1, 1):
             x = hL * i
             nx = i
@@ -314,6 +322,6 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'NX':str(Nx), 'NY':str(Ny), 'NZ':str(Nz), 'T': str(t_max),
         'n_ball':str(n_ball), 'n_fluid':str(n_fluid)}
 exttool_lib_name = "britan_ball_sim.dll" if platform.system() == "Windows" \
-    else "libbritan_ball_sim.so"
+    else "libbritan_ball_sim_comp.so"
 data['EXTTOOL_LIB_PATH'] = os.path.join(script_folder, exttool_lib_name)
 utils.configure(data, os.path.join(script_folder, "templates"))

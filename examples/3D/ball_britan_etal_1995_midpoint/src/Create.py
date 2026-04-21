@@ -52,7 +52,7 @@ R = 0.019
 
 g = 0.0
 hfac = 2.0
-dr = 0.002
+dr = 0.004
 
 alpha = 0.0
 delta = 1.0
@@ -75,7 +75,11 @@ c2 = math.sqrt(gamma * p2 / rho2)
 M2 = 0.70
 v2 = c2 * M2
 u2 = v1 - v2
-print(f"Shock wave advancing at {u2} m/s")
+print(f"Shock wave advancing at {v1} m/s")
+print(f"Motion after shock wave {u2} m/s")
+
+print(f"Sound speed before shock wave {c1} m/s")
+print(f"Sound speed after shock wave {c2} m/s")
 
 e1 = p1 / ((gamma - 1.0) * rho1)
 e2 = p2 / ((gamma - 1.0) * rho2)
@@ -202,7 +206,7 @@ for point in points:
 # ==============================
 # Bottom
 for i in range(Nx):
-    x = -hL - 0.5 * dr + i * dr
+    x = -hL + 0.5 * dr + i * dr
     for j in range(Ny):
         y = -hB + 0.5 * dr + j * dr
         z = -hh
@@ -225,7 +229,7 @@ for i in range(Nx):
 
 # Top
 for i in range(Nx):
-    x = -hL - 0.5 * dr + i * dr
+    x = -hL + 0.5 * dr + i * dr
     for j in range(Ny):
         y = -hB + 0.5 * dr + j * dr
         z = hh
@@ -248,7 +252,7 @@ for i in range(Nx):
 
 # Front and back
 for i in range(Nx):
-    x = -hL - 0.5 * dr + i * dr
+    x = -hL + 0.5 * dr + i * dr
     for k in range(Nz):
         z = -hh + 0.5 * dr + k * dr
         for j in (-1, 1):
@@ -274,7 +278,7 @@ for i in range(Nx):
             
 # Left and Right
 for j in range(Ny):
-    y = -hB - 0.5 * dr + j * dr
+    y = -hB + 0.5 * dr + j * dr
     for k in range(Nz):
         z = -hh + 0.5 * dr + k * dr
         for i in (-1, 1):
@@ -313,7 +317,7 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'L':str(L), 'B':str(B), 'H':str(H), 'R':str(R), 'GAMMA':str(gamma),        
         'NX':str(Nx), 'NY':str(Ny), 'NZ':str(Nz), 'T': str(t_max),
         'n_ball':str(n_ball), 'n_fluid':str(n_fluid)}
-exttool_lib_name = "britan_ball_sim.dll" if platform.system() == "Windows" \
-    else "libbritan_ball_sim.so"
+exttool_lib_name = "britan_ball_sim_com_2.dll" if platform.system() == "Windows" \
+    else "libbritan_ball_sim_com_2.so"
 data['EXTTOOL_LIB_PATH'] = os.path.join(script_folder, exttool_lib_name)
 utils.configure(data, os.path.join(script_folder, "templates"))
