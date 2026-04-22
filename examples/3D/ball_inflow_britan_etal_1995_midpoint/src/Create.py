@@ -95,9 +95,6 @@ sep = 2.0
 h = hfac * dr
 Lext = L
 
-TO_METERS = 1.e-3
-IN_POINT = [0, 0, 0]
-
 # Create the ball at the (0, 0, 0)
 # ================================
 
@@ -276,34 +273,13 @@ for i in range(Nx):
             n_fluid += 1
             
             
-# Left and Right
+# Right
 for j in range(Ny):
     y = -hB + 0.5 * dr + j * dr
     for k in range(Nz):
         z = -hh + 0.5 * dr + k * dr
-        # for i in (-1, 1):
-        #     x = hL * i
-        #     nx = i
-        #     imove = -3
-        #     mass = dr**2.0
-        #     string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-        #         x, y, z,
-        #         nx, 0.0, 0.0,
-        #         0.0, 0.0, -nx,
-        #         0.0, 0.0, 0.0,
-        #         0.0, 0.0, 0.0,
-        #         rho2,
-        #         0.0,
-        #         e2,
-        #         0.0,
-        #         mass,
-        #         imove)
-        #     output.write(string)
-        #     n_fluid += 1
-            
-
-        x = hL * 1
-        nx = i
+        x = hL
+        nx = 1
         imove = -3
         mass = dr**2.0
         string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
@@ -320,13 +296,22 @@ for j in range(Ny):
             imove)
         output.write(string)
         n_fluid += 1
-        
-n_buffer_depth = 16
-n_buffer = n_buffer_depth * Ny * Nz
 
-x = hL + 2 * 2 * h
-y = hB + 2 * 2 * h
-z = hh + 2 * 2 * h
+#Setup the Inlet buffer particles. In this case we need to continuously feed
+# with particles at a rate of Ny * Nz particles each dr / u2 seconds, during
+# the full simulation. That is because we have no outlet, so the buffer will
+# not be refilled during the runtime
+ddom = 2 * sep * h
+domain_min = (-hL - ddom, -hB - ddom, -hh - ddom, 0.0)
+domain_max = (hL + ddom, hB + ddom, hh + ddom, 0.0)
+
+n_buffer_depth = 16
+n_buffer = Ny * Nz * (n_buffer_depth + int(math.ceil(u2 / dr * t_max)))
+print(f"{n_buffer} buffer particles")
+
+x = domain_max[0] + sep * h
+y = domain_max[1] + sep * h
+z = domain_max[2] + sep * h
 for i in range(n_buffer):
     #n += 1
     imove = -255       
@@ -348,11 +333,7 @@ for i in range(n_buffer):
             
 output.close()
 
-
-ddom = 2 * sep * h
-domain_min = (-hL - ddom, -hB - ddom, -hh - ddom, 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (hL + ddom, hB + ddom, hh + ddom, 0.0)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),

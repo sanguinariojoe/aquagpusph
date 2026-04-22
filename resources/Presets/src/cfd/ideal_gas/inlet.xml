@@ -33,12 +33,15 @@
         <Tool name="cfd inlet io_rho" action="insert" after="cfd Shepard" type="set_scalar"
             in="io_rho"
             value="inflow_rho" />
+        <Tool name="cfd inlet io_gamma" action="insert" after="cfd Shepard" type="set_scalar"
+            in="io_gamma"
+            value="inflow_gamma" />
         <Tool name="cfd inlet io_eint" action="insert" after="cfd Shepard" type="set_scalar"
             in="io_eint"
             value="inflow_eint" />
 
         <Tool name="cfd inlet characteristics" action="insert"
-            after="cfd inlet io_r,cfd inlet io_n,cfd inlet io_U,cfd inlet io_rho,cfd inlet io_eint"
+            after="cfd inlet io_r,cfd inlet io_n,cfd inlet io_U,cfd inlet io_rho,cfd inlet io_gamma,cfd inlet io_eint"
             type="kernel"
             entry_point="characteristics" path="../../../Scripts/cfd/ideal_gas/Inflow/Inlet.cl" />
 
