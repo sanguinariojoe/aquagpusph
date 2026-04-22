@@ -145,11 +145,11 @@ __kernel void values(const __global int* restrict imove,
     p[i] = pref + 0.5f * (j2[i] + j3[i]);
     eint[i] = eint_from_rho_p(gamma[iset[i]], rho[i], p[i]);
     
-    printf("\n");    
-    printf("Routine values:\n");
-    printf("Inlet-outlet rho: %g\n", rho[i]);
-    printf("Inlet-outlet p: %g\n", p[i]);
-    printf("Inlet-outlet eint: %g\n", eint[i]);
-    printf("Inlet-outlet velocity: %g, %g, %g\n", u[i].x, u[i].y, u[i].z);
-    printf("\n");
+    // printf("\n");    
+    // printf("Routine values:\n");
+    // printf("Inlet-outlet rho: %g\n", rho[i]);
+    // printf("Inlet-outlet p: %g\n", p[i]);
+    // printf("Inlet-outlet eint: %g\n", eint[i]);
+    // printf("Inlet-outlet velocity: %g, %g, %g\n", u[i].x, u[i].y, u[i].z);
+    // printf("\n");
 }
