@@ -52,7 +52,7 @@ R = 0.019
 
 g = 0.0
 hfac = 2.0
-dr = 0.004
+dr = 0.002
 
 alpha = 0.0
 delta = 1.0
@@ -93,7 +93,6 @@ refd = 0.0
 
 sep = 2.0
 h = hfac * dr
-Lext = L
 
 # Create the ball at the (0, 0, 0)
 # ================================
@@ -138,18 +137,16 @@ output.close()
 
 print("Writing fluid...")
 
-Nx = nx = int(round(Lext / dr))
-Ny = ny = int(round(B / dr))
-Nz = nz = int(round(H / dr))
+Nx = int(round(L / dr))
+Ny = int(round(B / dr))
+Nz = int(round(H / dr))
 
-
-Lext = Nx * dr
 L = Nx * dr
 B = Ny * dr
 H = Nz * dr
 
 points = []
-hL = 0.5 * Lext
+hL = 0.5 * L
 hB = 0.5 * B
 hh = 0.5 * H
 

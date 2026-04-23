@@ -18,6 +18,9 @@ Authors:
 -->
 
 <sphInput>
+    <Definitions>
+        <Define name="__DR_FACTOR__" value="0.5 * sqrt(2)" evaluate="true"/>
+    </Definitions>
     <Variables>
         <Variable name="g" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
         <Variable name="dr" type="float" value="{{DR}}" />
