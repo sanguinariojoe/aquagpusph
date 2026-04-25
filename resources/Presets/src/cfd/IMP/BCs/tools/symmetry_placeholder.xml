@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<!-- A helper for cfd/IMP/BCs/symmetry.xml
+This tool is just adding placeholders for the main module, so it is easier for
+it to add the tools
+-->
+
+<sphInput>
+    <Tools>
+        <Tool name="inpoint imp Symmetry" action="try_remove" type="dummy"/>
+        <Tool name="inpoint imp Symmetry" action="insert" after="inpoint link-list advance r" type="dummy"/>
+        <Tool name="outpoint imp Symmetry" action="try_remove" type="dummy"/>
+        <Tool name="outpoint imp Symmetry" action="insert" after="outpoint link-list advance r" type="dummy"/>
+    </Tools>
+</sphInput>

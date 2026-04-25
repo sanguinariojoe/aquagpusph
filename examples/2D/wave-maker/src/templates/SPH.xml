@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    https://aquagpusph.org/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="g" type="vec" value="0.0, -{{G}}" />
+        <Variable name="dr" type="float" value="{{DR}}" />
+        <Variable name="hfac" type="float" value="{{HFAC}}" />
+        <Variable name="h" type="float" value="hfac * dr" />
+        <Variable name="cs" type="float" value="{{CS}}" />
+        <Variable name="courant" type="float" value="{{COURANT}}" />
+        <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
+        <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
+        <Variable name="L" type="float" value="{{L}}" />
+        <Variable name="H" type="float" value="{{H}}" />
+        <Variable name="depth" type="float" value="{{DEPTH}}" />
+        <Variable name="x_probe" type="float" value="{{X_PROBE}}" />
+        <Variable name="scale_factor" type="float" value="{{SCALE}}" />
+        <Variable name="Hs" type="float" value="{{Hs}}" />
+        <Variable name="Tp" type="float" value="{{Tp}}" />
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="10"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="0"/>
+        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-3" symbol="E_{\Delta t}^{max}"/>
+    </Variables>
+</sphInput>
