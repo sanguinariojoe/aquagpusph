@@ -39,6 +39,7 @@
 #include <vtkPoints.h>
 #include <vtkVertex.h>
 #include <vtkCellArray.h>
+#include <mutex>
 
 #ifdef VTK_NLOHMANN_JSON
 #include <vtk_nlohmannjson.h>
@@ -170,6 +171,8 @@ class VTK : public Particles
 	/// VTK series data
 	nlohmann::json _data_series;
 
+	/// Mutex to avoid several threads printing the VTK series at the same time
+	std::recursive_mutex _mutex;
 }; // class InputOutput
 
 }

@@ -25,13 +25,14 @@
 
 #ifdef HAVE_VTK
 
+#include <atomic>
+#include <vector>
+
 #include "VTK.hpp"
 #include "Logger.hpp"
 #include "aquagpusph/ProblemSetup.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
-
-#include <vector>
 
 using json = nlohmann::json;
 
@@ -704,6 +705,8 @@ VTK::create()
 void
 VTK::updateSeries(float t)
 {
+	const std::lock_guard<std::recursive_mutex> lock(_mutex);
+
 	std::ostringstream msg;
 	msg << "Writing \"" << filenameSeries() << "\" Paraview data file..."
 	    << std::endl;
