@@ -41,19 +41,19 @@ import numpy as np
 # Tank dimensions
 H = 2.5
 L = 12.0
-L_beach = 5.0
+L_beach = 6.0
 # Fluid
 h = 2.0
 # Wave height probe position
-x_probe = 4.0
+x_probe = 3.0
 # Scale factor (in this case it is fixed by the model/real depth ratio)
 scale = 2.0 / 30.0
 # JONSWAP spectrum
-Hs = 5.0
+Hs = 3.0
 Tp = 10.0
 
 # SPH params
-ny = 50  # Number of fluid particles (in z dir)
+ny = 100  # Number of fluid particles (in z dir)
 g = 9.81
 hfac = 2.0
 cs = 50.0
@@ -133,9 +133,9 @@ normaly = -np.ones(len(x))
 s = np.ones(len(x)) * dr
 x_beach = np.linspace(L - L_beach + 0.5 * dr, L - 0.5 * dr, num=N_beach)
 y_beach = -h + H * (x_beach - (L - L_beach)) / L_beach
-normalx_beach = np.ones(len(x)) * H / length_beach
-normaly_beach = -np.ones(len(x)) * L_beach / length_beach
-s_beach = np.ones(len(x)) * dr_beach
+normalx_beach = np.ones(len(x_beach)) * H / length_beach
+normaly_beach = -np.ones(len(x_beach)) * L_beach / length_beach
+s_beach = np.ones(len(x_beach)) * dr_beach
 
 x = np.concatenate((x, x_beach))
 y = np.concatenate((y, y_beach))

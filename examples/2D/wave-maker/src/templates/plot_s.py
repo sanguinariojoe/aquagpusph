@@ -123,10 +123,10 @@ for i, ax in enumerate(axes):
     ax.grid()
     ax.set_title(titles[i])
     ax.set_xlim(0, 1.05 * np.max(f_exp))
-    ax.set_ylim(0.0, 1.05 * np.max(S_exp))
+    ax.set_ylim(0.0, 1.5 * np.max(S_exp))
     ax.set_autoscale_on(False)
     if i > 1:
-        ax.set_xlabel(r"$t \, [\mathrm{s}]$")
+        ax.set_xlabel(r"$f \, [\mathrm{Hz}]$")
     else:
         plt.setp(ax.get_xticklabels(), visible=False)
     if i in (0, 2):

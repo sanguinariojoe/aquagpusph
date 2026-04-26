@@ -25,7 +25,7 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-        <Option name="End" type="Time" value="3600.0" />
+        <Option name="End" type="Time" value="1000.0" />
 
         <!-- Set output files print criteria
             type="FPS" Frames per second
