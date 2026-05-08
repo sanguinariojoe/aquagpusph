@@ -29,11 +29,11 @@
  */
 
 #ifndef INWARD_NORMAL_SIGN
-    #define INWARD_NORMAL_SIGN 1.f
+#define INWARD_NORMAL_SIGN 1.f
 #endif
 
 #ifndef J_SHEPARD_LIMIT
-    #define J_SHEPARD_LIMIT FLT_EPSILON
+#define J_SHEPARD_LIMIT FLT_EPSILON
 #endif
 
 #include "resources/Scripts/types/types.h"
@@ -64,48 +64,49 @@
  * @param io_rFS The point where the pressure is the reference one
  * (\f$ p_0 \f$).
  */
-__kernel void characteristics(const __global int* restrict imove,
-                              const __global unsigned int* restrict iset,
-                              const __global vec* restrict r,
-                              const __global vec* restrict u,
-                              const __global float* restrict rho,
-                              const __global float* restrict p,
-                              __global float* restrict j1,
-                              __global float* restrict j2,
-                              __global float* restrict j3,
-                              const __constant float* restrict refd,
-                              usize N,
-                              usize nbuffer,
-                              float dt,
-                              float cs,
-                              float p0,
-                              vec g,
-                              vec io_r,
-                              vec io_n,
-                              float io_U,
-                              vec io_rFS)
+__kernel void
+characteristics(const __global int* restrict imove,
+                const __global unsigned int* restrict iset,
+                const __global vec* restrict r,
+                const __global vec* restrict u,
+                const __global float* restrict rho,
+                const __global float* restrict p,
+                __global float* restrict j1,
+                __global float* restrict j2,
+                __global float* restrict j3,
+                const __constant float* restrict refd,
+                usize N,
+                usize nbuffer,
+                float dt,
+                float cs,
+                float p0,
+                vec g,
+                vec io_r,
+                vec io_n,
+                float io_U,
+                vec io_rFS)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] != 1)
-        return;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] != 1)
+		return;
 
-    // Discard the particles at the inlet/outlet
-    if(dot(r[i] - io_r, INWARD_NORMAL_SIGN * io_n) < 0.f)
-        return;
+	// Discard the particles at the inlet/outlet
+	if (dot(r[i] - io_r, INWARD_NORMAL_SIGN * io_n) < 0.f)
+		return;
 
-    const float cs2 = cs * cs;
-    const float un = dot(u[i], io_n);
+	const float cs2 = cs * cs;
+	const float un = dot(u[i], io_n);
 
-    // Get the reference values
-    const float uref = io_U;
-    const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
-    const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
+	// Get the reference values
+	const float uref = io_U;
+	const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
+	const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
 
-    j1[i] = -cs2 * (rho[i] - rhoref) + p[i] - pref;
-    j2[i] = rho[i] * cs * (un - uref) + p[i] - pref;
-    j3[i] = -rho[i] * cs * (un - uref) + p[i] - pref;
+	j1[i] = -cs2 * (rho[i] - rhoref) + p[i] - pref;
+	j2[i] = rho[i] * cs * (un - uref) + p[i] - pref;
+	j3[i] = -rho[i] * cs * (un - uref) + p[i] - pref;
 }
 
 /** @brief Extrapolate the characteristics to the particles at the
@@ -129,70 +130,71 @@ __kernel void characteristics(const __global int* restrict imove,
  * @param io_n = Velocity direction.
  * @param N Number of particles.
  */
-__kernel void extrapolate(const __global int* restrict imove,
-                          const __global vec* restrict r,
-                          const __global float* restrict rho,
-                          const __global float* restrict m,
-                          const __global svec2* restrict jhoc,
-                          const __global float* restrict j1,
-                          const __global float* restrict j2,
-                          const __global float* restrict j3,
-                          __global float* restrict j1_tmp,
-                          __global float* restrict j2_tmp,
-                          __global float* restrict j3_tmp,
-                          __global float* restrict shepard,
-                          const __constant float* restrict refd,
-                          usize N,
-                          vec io_r,
-                          vec io_n)
+__kernel void
+extrapolate(const __global int* restrict imove,
+            const __global vec* restrict r,
+            const __global float* restrict rho,
+            const __global float* restrict m,
+            const __global svec2* restrict jhoc,
+            const __global float* restrict j1,
+            const __global float* restrict j2,
+            const __global float* restrict j3,
+            __global float* restrict j1_tmp,
+            __global float* restrict j2_tmp,
+            __global float* restrict j3_tmp,
+            __global float* restrict shepard,
+            usize N,
+            vec io_r,
+            vec io_n)
 {
-    const usize i = get_global_id(0);
-    const usize it = get_local_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] != 1)
-        return;
+	const usize i = get_global_id(0);
+	const usize it = get_local_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] != 1)
+		return;
 
-    const vec_xyz r_i = r[i].XYZ;
+	const vec_xyz r_i = r[i].XYZ;
 
-    // Discard the particles that already passed through the inlet/outlet
-    if(dot(r_i - io_r.XYZ, INWARD_NORMAL_SIGN * io_n.XYZ) > 0.f)
-        return;
+	// Discard the particles that already passed through the inlet/outlet
+	if (dot(r_i - io_r.XYZ, INWARD_NORMAL_SIGN * io_n.XYZ) > 0.f)
+		return;
 
-    __private float __j1 = 0.f;
-    __private float __j2 = 0.f;
-    __private float __j3 = 0.f;
-    __private float __shepard = 0.f;
+	__private float __j1 = 0.f;
+	__private float __j2 = 0.f;
+	__private float __j3 = 0.f;
+	__private float __shepard = 0.f;
 
-    FOR_NEIGHS(N, jhoc){
-        if(imove[j] != 1)
-            continue;
-        if(dot(r[j] - io_r, INWARD_NORMAL_SIGN * io_n) <= 0.f) {
-            // Do not use other inlet/outlet particles to interpolate
-            continue;            
-        }
-            
-        const vec_xyz r_ij = r[j].XYZ - r_i;
-        const float q = length(r_ij) / H;
-        if(q >= SUPPORT)
-        {
-            continue;
-        }
-        {
-            const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
+	FOR_NEIGHS(N, jhoc)
+	{
+		if (imove[j] != 1)
+			continue;
+		if (dot(r[j] - io_r, INWARD_NORMAL_SIGN * io_n) <= 0.f) {
+			// Do not use other inlet/outlet particles to interpolate
+			continue;
+		}
 
-            __shepard += w_ij;
-            __j1 += j1[j] * w_ij;
-            __j2 += j2[j] * w_ij;
-            __j3 += j3[j] * w_ij;
-        }
-    }END_FOR_NEIGHS()
+		const vec_xyz r_ij = r[j].XYZ - r_i;
+		const float q = length(r_ij) / H;
+		if (q >= SUPPORT) {
+			continue;
+		}
+		{
+			const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
 
-    const float div = __shepard > J_SHEPARD_LIMIT ? 1.f / __shepard : 1.f;
-    j1_tmp[i] = __j1 * div;
-    j2_tmp[i] = __j2 * div;
-    j3_tmp[i] = __j3 * div;
-    shepard[i] = __shepard;
+			__shepard += w_ij;
+			__j1 += j1[j] * w_ij;
+			__j2 += j2[j] * w_ij;
+			__j3 += j3[j] * w_ij;
+		}
+	}
+	END_FOR_NEIGHS()
+
+	const float div = __shepard > J_SHEPARD_LIMIT ? 1.f / __shepard : 1.f;
+	j1_tmp[i] = __j1 * div;
+	j2_tmp[i] = __j2 * div;
+	j3_tmp[i] = __j3 * div;
+	shepard[i] = __shepard;
 }
 
 /** @brief Set the field values at the inlet
@@ -220,46 +222,47 @@ __kernel void extrapolate(const __global int* restrict imove,
  * @param io_rFS The point where the pressure is the reference one
  * (\f$ p_0 \f$).
  */
-__kernel void values(const __global int* restrict imove,
-                     const __global unsigned int* restrict iset,
-                     const __global vec* restrict r,
-                     __global vec* restrict u,
-                     __global float* restrict rho,
-                     __global float* restrict p,
-                     const __global float* restrict j1,
-                     const __global float* restrict j2,
-                     const __global float* restrict j3,
-                     const __constant float* restrict refd,
-                     usize N,
-                     float dt,
-                     float cs,
-                     float p0,
-                     vec g,
-                     vec io_r,
-                     vec io_n,
-                     float io_U,
-                     vec io_rFS)
+__kernel void
+values(const __global int* restrict imove,
+       const __global unsigned int* restrict iset,
+       const __global vec* restrict r,
+       __global vec* restrict u,
+       __global float* restrict rho,
+       __global float* restrict p,
+       const __global float* restrict j1,
+       const __global float* restrict j2,
+       const __global float* restrict j3,
+       const __constant float* restrict refd,
+       usize N,
+       float dt,
+       float cs,
+       float p0,
+       vec g,
+       vec io_r,
+       vec io_n,
+       float io_U,
+       vec io_rFS)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] != 1)
-        return;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] != 1)
+		return;
 
-    // Discard the particles that already passed through the inlet/outlet
-    if(dot(r[i] - io_r, INWARD_NORMAL_SIGN * io_n) > 0.f)
-        return;
+	// Discard the particles that already passed through the inlet/outlet
+	if (dot(r[i] - io_r, INWARD_NORMAL_SIGN * io_n) > 0.f)
+		return;
 
-    const float cs2 = cs * cs;
+	const float cs2 = cs * cs;
 
-    // Get the reference values
-    const float uref = io_U;
-    const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
-    const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
+	// Get the reference values
+	const float uref = io_U;
+	const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
+	const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
 
-    rho[i] = rhoref + 1.f / cs2 * (-j1[i] + 0.5f * j2[i] + 0.5f * j3[i]);
-    u[i] = (uref + 1.f / (2.f * rho[i] * cs) * (j2[i] - j3[i])) * io_n;
-    p[i] = pref + 0.5f * (j2[i] + j3[i]);
+	rho[i] = rhoref + 1.f / cs2 * (-j1[i] + 0.5f * j2[i] + 0.5f * j3[i]);
+	u[i] = (uref + 1.f / (2.f * rho[i] * cs) * (j2[i] - j3[i])) * io_n;
+	p[i] = pref + 0.5f * (j2[i] + j3[i]);
 }
 
 /*

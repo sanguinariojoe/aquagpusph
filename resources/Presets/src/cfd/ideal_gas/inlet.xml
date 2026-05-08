@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<sphInput>
+
+    <!--<Include file="../inflow.xml" />-->
+    <Include file="inflow.xml" />
+
+
+    <Variables>
+        <Variable name="io_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="io_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
+        <Variable name="io_U" type="float" value="0.0" />
+
+        <Variable name="io_rho" type="float" value="0.0" />
+        <Variable name="io_gamma" type="float" value="0.0" />
+        <Variable name="io_eint" type="float" value="0.0" />
+
+        <Variable name="j1" type="float*" length="N" symbol="J_1" />
+        <Variable name="j2" type="float*" length="N" symbol="J_2" />
+        <Variable name="j3" type="float*" length="N" symbol="J_3" />
+        <Variable name="j1_tmp" type="float*" length="N" symbol="J_1" />
+        <Variable name="j2_tmp" type="float*" length="N" symbol="J_2" />
+        <Variable name="j3_tmp" type="float*" length="N" symbol="J_3" />
+    </Variables>
+
+    <Tools>
+        <Tool name="cfd inlet io_r" action="insert" after="cfd Shepard" type="set_scalar" in="io_r"
+            value="inflow_r_x,inflow_r_y,inflow_r_z,inflow_r_w" />
+        <Tool name="cfd inlet io_n" action="insert" after="cfd Shepard" type="set_scalar" in="io_n"
+            value="inflow_n_x,inflow_n_y,inflow_n_z,inflow_n_w" />
+
+        <Tool name="cfd inlet io_U" action="insert" after="cfd Shepard" type="set_scalar" in="io_U"
+            value="inflow_U" />
+        
+        <Tool name="cfd inlet io_rho" action="insert" after="cfd Shepard" type="set_scalar"
+            in="io_rho"
+            value="inflow_rho" />
+
+        <Tool name="cfd inlet io_gamma" action="insert" after="cfd Shepard" type="set_scalar"
+            in="io_gamma"
+            value="inflow_gamma" />
+            
+        <Tool name="cfd inlet io_eint" action="insert" after="cfd Shepard" type="set_scalar"
+            in="io_eint"
+            value="inflow_eint" />
+
+        <Tool name="cfd inlet characteristics" action="insert"
+            after="cfd inlet io_r,cfd inlet io_n,cfd inlet io_U,cfd inlet io_rho,cfd inlet io_gamma,cfd inlet io_eint"
+            type="kernel"
+            entry_point="characteristics" path="../../../Scripts/cfd/ideal_gas/Inflow/Inlet.cl" />
+
+        <Tool name="cfd inlet extrapolate" action="insert" after="cfd inlet characteristics"
+            type="kernel" entry_point="extrapolate" path="../../../Scripts/cfd/Boundary/Inlet/Inlet.cl" />
+
+        <Tool name="cfd inlet J1=0" action="insert" after="cfd inlet extrapolate" type="set" in="j1"
+            value="0.f" />
+        <Tool name="cfd inlet J2=0" action="insert" after="cfd inlet extrapolate" type="set" in="j2"
+            value="0.f" />
+        <Tool name="cfd inlet J3" action="insert" after="cfd inlet extrapolate" type="copy"
+            in="j3_tmp" out="j3" />
+
+        <Tool name="cfd inlet set" action="insert"
+            after="cfd inlet J1=0,cfd inlet J2=0,cfd inlet J3" type="kernel" entry_point="values"
+            path="../../../Scripts/cfd/ideal_gas/Inflow/Inlet.cl" />
+    </Tools>
+</sphInput>
