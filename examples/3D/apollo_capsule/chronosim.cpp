@@ -67,8 +67,6 @@ ApolloSim::setup()
     // Get the configuration variables
     auto vars = CalcServer::singleton()->variables();
 
-    // setting up the variables
-    // variables documeneted in header file
     _pitch = *((float*)vars->get("pitch")->get(true));
     _vel = *((float*)vars->get("u0")->get(true));
     _cogz = *((float*)vars->get("cogz")->get(true)); 
@@ -153,7 +151,7 @@ ApolloSim::setup()
     //    y : Positive moment = positive pitch = bow goes down
     //    z : Positive moment = positive yaw = bow goes to the portside
 
-    //create a cuaternion
+    //create a quaternion
     chrono::ChQuaternion<double> R;
     // cardan angles known, set them inside
     R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, _pitch, 0));
