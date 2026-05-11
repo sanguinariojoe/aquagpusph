@@ -93,10 +93,6 @@ __kernel void characteristics(const __global int* restrict imove,
     j2[i] = rho[i] * cs_i * (un - uref) + p_i - pref;
     j3[i] = -rho[i] * cs_i * (un - uref) + p_i - pref;
 
-    //printf("io_U=%f\n", io_U);
-    //printf("io_rho=%f\n", io_rho);
-    //printf("io_eint=%f\n", io_eint);
-    //printf("io_gamma=%f\n", io_gamma);
 }
 
 
@@ -142,20 +138,9 @@ __kernel void values(const __global int* restrict imove,
     const float pref = p_from_rho_eint(io_gamma, io_rho, io_eint);
     const float rhoref = io_rho;
 
-    // const float uref = io_U;
-    // const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
-    // const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
-
     rho[i] = rhoref + 1.f / cs_i2 * (-j1[i] + 0.5f * j2[i] + 0.5f * j3[i]);
     u[i] = (uref + 1.f / (2.f * rho[i] * cs_i) * (j2[i] - j3[i])) * io_n;
     p[i] = pref + 0.5f * (j2[i] + j3[i]);
     eint[i] = eint_from_rho_p(gamma[iset[i]], rho[i], p[i]);
     
-    // printf("\n");    
-    // printf("Routine values:\n");
-    // printf("Inlet-outlet rho: %g\n", rho[i]);
-    // printf("Inlet-outlet p: %g\n", p[i]);
-    // printf("Inlet-outlet eint: %g\n", eint[i]);
-    // printf("Inlet-outlet velocity: %g, %g, %g\n", u[i].x, u[i].y, u[i].z);
-    // printf("\n");
 }

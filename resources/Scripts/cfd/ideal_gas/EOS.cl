@@ -68,8 +68,7 @@ __kernel void entry(const __global unsigned int* iset,
         return;
     
     p[i] = p_from_rho_eint(gamma[iset[i]], rho[i], eint[i]);
-    
-//    p[i] = (gamma[iset[i]] - 1.0f) * rho[i] * eint[i];
+
 }
 
 /*

@@ -59,7 +59,6 @@
  * @param inflow_gamma Constatn inflow polytropic coefficient
  * @param inflow_starving Is the inflow starving, so we need to feed it?
  * @param eint Internal energy
- * @param gamma Polytropic coefficient
  * @param deintdt Internal enery rate of change
  */
 
@@ -73,6 +72,8 @@ feed(__global int* restrict imove,
      __global float* restrict drhodt,
      __global float* restrict m,
      __global float* restrict p,
+	 __global float* restrict eint,
+     __global float* restrict deintdt,
      usize N,
      usize nbuffer,
      vec g, // keep it here
@@ -87,9 +88,7 @@ feed(__global int* restrict imove,
      int inflow_starving,
      float inflow_rho,
      float inflow_eint,
-     float inflow_gamma,
-     __global float* restrict eint,
-     __global float* restrict deintdt)
+     float inflow_gamma)
 {
 	//printf("reaches feed\n");
 	// find position in global arrays
@@ -132,7 +131,6 @@ feed(__global int* restrict imove,
 	drhodt[ii] = 0.f;
 	eint[ii] = inflow_eint;
 	deintdt[ii] = 0.f;
-	//gamma[ii] = inflow_gamma;
 	p[ii] = p_from_rho_eint(inflow_gamma, inflow_rho, inflow_eint);
 }
 
