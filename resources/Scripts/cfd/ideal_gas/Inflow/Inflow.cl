@@ -42,6 +42,8 @@
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
+ * @param eint Internal energy
+ * @param deintdt Internal enery rate of change
  * @param N Number of particles.
  * @param nbuffer Number of buffer particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
@@ -54,12 +56,12 @@
  * @param inflow_U = Constant inflow velocity magnitude
  * @param inflow_R Accumulated displacement (to be added to the generation
  * point)
+ * @param inflow_starving Is the inflow starving, so we need to feed it?
  * @param inflow_rho Constant inflow density
  * @param inflow_eint Constan inflow internal enery
  * @param inflow_gamma Constatn inflow polytropic coefficient
- * @param inflow_starving Is the inflow starving, so we need to feed it?
- * @param eint Internal energy
- * @param deintdt Internal enery rate of change
+
+
  */
 
 __kernel void
