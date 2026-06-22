@@ -30,16 +30,16 @@
 #
 #########################################################################
 
+import math
+import platform
+import trimesh
+import numpy as np
+import aqua_example_utils as utils
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
-import aqua_example_utils as utils
 
-import numpy as np
-import trimesh
-import platform
-import math
 
 # Constants & conditions
 # ========================
@@ -177,7 +177,7 @@ for point in points:
 
     # The shock wave is placed just before the ball can sense it
     if x < -R - 0.5 * dr - sep * h:
-        rho, ener, imove, velx = rho2, e2, 1, u2  
+        rho, ener, imove, velx = rho2, e2, 1, u2
     else:
         rho, ener, imove, velx = rho1, e1, 1, u1
 
@@ -268,8 +268,8 @@ for i in range(Nx):
                 imove)
             output.write(string)
             n_fluid += 1
-            
-            
+
+
 # Right
 for j in range(Ny):
     y = -hB + 0.5 * dr + j * dr
@@ -294,7 +294,7 @@ for j in range(Ny):
         output.write(string)
         n_fluid += 1
 
-#Setup the Inlet buffer particles. In this case we need to continuously feed
+# Setup the Inlet buffer particles. In this case we need to continuously feed
 # with particles at a rate of Ny * Nz particles each dr / u2 seconds, during
 # the full simulation. That is because we have no outlet, so the buffer will
 # not be refilled during the runtime
@@ -310,8 +310,8 @@ x = domain_max[0] + sep * h
 y = domain_max[1] + sep * h
 z = domain_max[2] + sep * h
 for i in range(n_buffer):
-    #n += 1
-    imove = -255       
+    # n += 1
+    imove = -255
     mass = rho2 * dr**2.0
     string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
         x, y, z,
@@ -320,27 +320,47 @@ for i in range(n_buffer):
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
         rho2,
-        0.0,  
+        0.0,
         e2,
         0.0,
         mass,
         imove)
     output.write(string)
     n_fluid += 1
-            
+
 output.close()
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
-data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(rho1),
-        'RHO1':str(rho1), 'RHO2':str(rho2), 'RHOP':str(rhop),
-        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
-        'L':str(L), 'B':str(B), 'H':str(H), 'R':str(R), 'GAMMA':str(gamma),        
-        'NX':str(Nx), 'NY':str(Ny), 'NZ':str(Nz), 'T': str(t_max),
-        'U2':str(u2), 'E2':str(e2),'L_2':str(L/2.0), 'B_2':str(B/2.0), 'H_2':str(H/2.0), 
-        'n_ball':str(n_ball), 'n_fluid':str(n_fluid)}
+data = {
+    'DR': str(dr), 
+    'HFAC': str(hfac), 
+    'CS': str(cs), 
+    'COURANT': str(courant),
+    'DOMAIN_MIN': domain_min, 
+    'DOMAIN_MAX': domain_max, 
+    'REFD': str(rho1),
+    'RHO1': str(rho1), 
+    'RHO2': str(rho2), 
+    'RHOP': str(rhop), 
+    'VISC_DYN': str(visc_dyn), 
+    'DELTA': str(delta), 
+    'G': str(g),
+    'L': str(L), 
+    'B': str(B), 
+    'H': str(H), 
+    'R': str(R), 
+    'GAMMA': str(gamma),
+    'NX': str(Nx), 
+    'NY': str(Ny), 
+    'NZ': str(Nz), 
+    'T': str(t_max),
+    'U2': str(u2), 
+    'E2': str(e2), 
+    'n_ball': str(n_ball), 
+    'n_fluid': str(n_fluid)
+    }
 exttool_lib_name = "britan_ball_sim_com_inflow.dll" if platform.system() == "Windows" \
     else "libbritan_ball_sim_com_inflow.so"
 data['EXTTOOL_LIB_PATH'] = os.path.join(script_folder, exttool_lib_name)

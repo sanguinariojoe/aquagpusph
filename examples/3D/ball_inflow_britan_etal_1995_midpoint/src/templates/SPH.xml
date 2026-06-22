@@ -45,7 +45,7 @@ Authors:
         <Variable name="inflow_r" type="vec" value="-0.5*{{L}} + {{DR}} + support*h, -0.5*{{B}}, -0.5*{{H}}, 0.0" />
         <Variable name="inflow_ru" type="vec" value="0.0, {{B}}, 0.0, 0.0" />
         <Variable name="inflow_rv" type="vec" value="0.0, 0.0, {{H}}, 0.0" />
-        <Variable name="inflow_rFS" type="vec" value="-{{L_2}}, 0.0, 0.0, 0.0" />
+        <Variable name="inflow_rFS" type="vec" value="-0.5*{{L}}, 0.0, 0.0, 0.0" />
         <Variable name="inflow_N" type="uivec2" value="{{NY}}, {{NZ}}" />
         <Variable name="inflow_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
         <Variable name="inflow_U" type="float" value="{{U2}}" />
