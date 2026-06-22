@@ -78,7 +78,6 @@ ApolloSim::setup()
     //Create a generic new body, without properties
     _apollo = chrono_types::make_shared<chrono::ChBody>();
 
-    //Add or Addbody is almost the same
     _sys->AddBody(_apollo);
 
     // Add a generic force and momentum
