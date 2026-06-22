@@ -104,7 +104,7 @@ feed(__global int* restrict imove,
 	}
 	const usize ii = i + N - nbuffer;
 
-// Compute the generation point
+	// Compute the generation point
 #ifndef HAVE_3D
 	const float u_fac = ((float)i + 0.5f) / inflow_N.x;
 	const float v_fac = 0.f;
