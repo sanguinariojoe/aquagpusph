@@ -43,7 +43,6 @@ extern "C" Aqua::CalcServer::ApolloSim* create_object(
 
 namespace Aqua{ namespace CalcServer{
 
-// initiates a tool element. Aqua inner 
 ApolloSim::ApolloSim(const std::string name, bool once)
     : Tool(name, once)
 {
@@ -61,7 +60,6 @@ ApolloSim::setup()
 {
     printf("Chronosim: Starting the setup\n");
     
-    //Tool is Aqua 
     Tool::setup();
 
     // Get the configuration variables
