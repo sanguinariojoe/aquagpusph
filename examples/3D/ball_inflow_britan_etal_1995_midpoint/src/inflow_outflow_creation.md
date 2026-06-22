@@ -3,17 +3,31 @@
 To create inflow outflow one have to carry out the following steps:
 
 1)   
-   Define sufficient particles in a buffer to be feed in the inflow in the [Create.py](http://Create.py) script. Note imove=-255, location slightly out of the calculation domain. Buffer thickness i still do not know how to define.
+   Define sufficient particles in a buffer to be feed in the inflow in the [Create.py](http://Create.py) script. Note imove=-255, location slightly out of the calculation domain. 
+
+   ![Buffer Zone](sketch_buffer.png)
+   
+   The buffer thickness is just the maximum amount of particles you expect to be living on the inflow area (so the maximum number of particles you need to get from the buffer and add at the inflow). The red volumes are the particles controlled by the inflow and the outflow. n_buffer_depth is just a just in case extra buffer.
+
+   Setup the Inlet buffer particles. In this case we need to continuously feed  with particles at a rate of Ny * Nz articles each dr / u seconds, during  the full simulation. That is because we have no outlet, so the buffer will be refilled during the runtime
+
+   ddom = 2 * 2.0 * h
+
+   domain_min = (-hL - ddom, -hB - ddom, -hh - ddom, 0.0)
+   
+   domain_max = (hL + ddom, hB + ddom, hh + ddom, 0.0)
 
    n\_buffer\_depth \= 16
+      
+   n\_buffer \= Ny \* Nz \* (n\_buffer\_depth \+ int(math.ceil(u \/ dr * t\_max)))
+
+
+   x \= domain_max[0] \+ 2.0 \* h
    
-   n\_buffer \= n\_buffer\_depth \* Ny \* Nz
+   y \= domain_max[1] \+ 2.0 \* h
    
-   x \= hL \+ 2 \* 2 \* h
-   
-   y \= hB \+ 2 \* 2 \* h
-   
-   z \= hh \+ 2 \* 2 \* h
+   z \= domain_max[2] \+ 2.0 \* h   
+
    
    for i in range(n\_buffer):
 
