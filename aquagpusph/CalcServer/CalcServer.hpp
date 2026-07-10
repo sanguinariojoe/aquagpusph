@@ -209,10 +209,10 @@ class DECLDIR CalcServer
 	/// Destructor
 	~CalcServer();
 
-	/** @brief Get --creating it the first time-- the logger instance
+	/** @brief Get the calculation server instance
 	 *
-	 * Just one logger can simultaneously exist
-	 * @return The logger
+	 * Just one calculation server can simultaneously exist
+	 * @return The calculation server
 	 */
 	static CalcServer* singleton();
 

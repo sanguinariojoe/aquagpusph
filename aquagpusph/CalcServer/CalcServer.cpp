@@ -53,6 +53,7 @@
 #include "UnSort.hpp"
 #include "Reports/Dump.hpp"
 #include "Reports/Performance.hpp"
+#include "Reports/Save.hpp"
 #include "Reports/Screen.hpp"
 #include "Reports/SetTabFile.hpp"
 #include "Reports/TabFile.hpp"
@@ -157,7 +158,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 {
 	if (g_calcserver_singleton_ptr) {
 		LOG(L_ERROR,
-		    "CalcServer was already built. Just one instance is allow\n");
+		    "CalcServer was already built. Just one instance is allowed\n");
 		throw std::runtime_error("Multiple instances of CalcServer");
 	}
 	g_calcserver_singleton_ptr = this;
@@ -474,6 +475,9 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                      t->get("fields"),
 			                      t->get("path"),
 			                      binary);
+			_tools.push_back(tool);
+		} else if (!t->get("type").compare("report_save")) {
+			Reports::Save* tool = new Reports::Save(t->get("name"));
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("report_performance")) {
 			Reports::Performance* tool = new Reports::Performance(

@@ -35,6 +35,7 @@ set(CPP_SRCS
     CalcServer/Reports/Dump.cpp
     CalcServer/Reports/Performance.cpp
     CalcServer/Reports/Report.cpp
+    CalcServer/Reports/Save.cpp
     CalcServer/Reports/Screen.cpp
     CalcServer/Reports/SetTabFile.cpp
     CalcServer/Reports/TabFile.cpp

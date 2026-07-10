@@ -71,3 +71,7 @@ IF(AQUAGPUSPH_USE_VTK)
 ENDIF(AQUAGPUSPH_USE_VTK)
 
 add_subdirectory(2D/Regressions/midpoint_predictor)
+
+if(AQUAGPUSPH_USE_VTK)
+    add_subdirectory(ReportSave)
+endif(AQUAGPUSPH_USE_VTK)

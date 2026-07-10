@@ -1242,6 +1242,8 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				_toolAttr(tool, s_elem, "path");
 				_toolAttr(tool, s_elem, "binary", "false");
 			} else if (!xmlAttribute(s_elem, "type")
+			                .compare("report_save")) {
+			} else if (!xmlAttribute(s_elem, "type")
 			                .compare("report_performance")) {
 				_toolAttr(tool, s_elem, "bold", "false");
 				_toolAttr(tool, s_elem, "color", "white");
@@ -1272,6 +1274,8 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				LOG0(L_DEBUG, "\t\treport_screen\n");
 				LOG0(L_DEBUG, "\t\treport_file\n");
 				LOG0(L_DEBUG, "\t\treport_particles\n");
+				LOG0(L_DEBUG, "\t\treport_dump\n");
+				LOG0(L_DEBUG, "\t\treport_save\n");
 				LOG0(L_DEBUG, "\t\treport_performance\n");
 				throw std::runtime_error("Unknown tool type");
 			}

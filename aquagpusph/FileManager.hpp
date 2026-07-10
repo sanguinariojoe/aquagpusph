@@ -55,6 +55,13 @@ class DECLDIR FileManager
 	/// Destructor
 	~FileManager();
 
+	/** @brief Get the file manager instance
+	 *
+	 * Just one file manager can simultaneously exist
+	 * @return The file manager
+	 */
+	static FileManager* singleton();
+
 	/** @brief Set the main XML input file path.
 	 *
 	 * AQUAgpusph simulations are built on top of a XML definition file. Such

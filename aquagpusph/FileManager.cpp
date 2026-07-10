@@ -33,11 +33,20 @@
 namespace Aqua {
 namespace InputOutput {
 
+/// Singleton instance of Aqua::InputOutput::FileManager
+std::atomic<FileManager*> g_filemanager_singleton_ptr(nullptr);
+
 FileManager::FileManager()
   : _state()
   , _simulation()
   , _in_file("Input.xml")
 {
+	if (g_filemanager_singleton_ptr) {
+		LOG(L_ERROR,
+		    "FileManager was already built. Just one instance is allowed\n");
+		throw std::runtime_error("Multiple instances of FileManager");
+	}
+	g_filemanager_singleton_ptr = this;
 }
 
 FileManager::~FileManager()
@@ -48,6 +57,12 @@ FileManager::~FileManager()
 	for (auto saver : _savers) {
 		delete saver;
 	}
+}
+
+FileManager*
+FileManager::singleton()
+{
+	return g_filemanager_singleton_ptr;
 }
 
 void
