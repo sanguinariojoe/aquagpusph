@@ -39,15 +39,16 @@ import numpy as np
 
 
 # Tank dimensions
-H = 2.5
-L = 12.0
-L_beach = 6.0
+H = 2.0
+L = 12.0  # Without the beach
+slope_beach = 1 / 15
+L_beach = H / slope_beach
 # Fluid
-h = 2.0
+h = 1.67
 # Wave height probe position
-x_probe = 3.0
+x_probe = 4.0
 # Scale factor (in this case it is fixed by the model/real depth ratio)
-scale = 2.0 / 30.0
+scale = 1.0 / 18.0
 # JONSWAP spectrum
 Hs = 3.0
 Tp = 10.0
@@ -65,8 +66,10 @@ visc_dyn = 0.000894
 
 # Let's compute the particles interspace and readjust some dimensions
 dr = h / ny
-Nx = nx = int(round(L / dr))
+Nx = int(round(L / dr))
 Nx_beach = int(round(L_beach / dr))
+Nx += Nx_beach
+nx = Nx
 Ny = int(round(H / dr))
 L = Nx * dr
 L_beach = Nx_beach * dr

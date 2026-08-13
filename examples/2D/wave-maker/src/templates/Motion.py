@@ -61,12 +61,11 @@ f /= np.sqrt(SCALE_FACTOR)
 omega = 2 * np.pi * f
 k = omega**2 / G
 kh = k * H
-# BUG: 2.0 here???
 Hw_S0 = 4.0 * np.sinh(kh) * (1.0 - np.cosh(kh) + kh * np.sinh(kh)) / \
     (kh * (np.sinh(kh) * np.cosh(kh) + kh))
 # Convert that to angles
 S0 = Hw / Hw_S0
-A = np.arctan(0.5 * S0 / H)
+A = np.arctan(S0 / H)
 lag = np.random.rand(len(A)) * 2 * np.pi
 
 

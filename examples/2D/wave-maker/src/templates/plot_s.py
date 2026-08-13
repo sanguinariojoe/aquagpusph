@@ -91,8 +91,11 @@ def update(frame_index):
     plt.tight_layout()
     try:
         data = readFile('sensors_h.out')
-        t = data[0]
-        hh = (data[-4], data[-3], data[-2], data[-1])
+        t = np.asarray(data[0])
+        hh = (np.asarray(data[-4]),
+              np.asarray(data[-3]),
+              np.asarray(data[-2]),
+              np.asarray(data[-1]))
     except IndexError:
         return
     except FileNotFoundError:
@@ -100,16 +103,19 @@ def update(frame_index):
     for i, h in enumerate(hh):
         # Compute the FFT
         dt = t[1] - t[0]
+        mask = t - t[-1] > -120.0
+        t = t[mask]
+        h = h[mask]
         f = np.fft.rfftfreq(len(t), d=dt)
-        Hw = 2.0 * np.abs(np.fft.rfft(h)) / len(f)
+        A = 2.0 * np.abs(np.fft.rfft(h)) / len(t)
 
         # Trasform the waves to real scale
-        Hw /= SCALE_FACTOR
+        A /= SCALE_FACTOR
         f *= np.sqrt(SCALE_FACTOR)
 
-        # Compyute the spectra
-        df = f[1] - f[0]
-        S = 0.5 * (0.5 * Hw)**2 / df
+        # Compute the spectra
+        df = f[2] - f[1]
+        S = 0.5 * A**2 / df
         lines[i].set_data(f, S)
 
 
