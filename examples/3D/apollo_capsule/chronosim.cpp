@@ -26,6 +26,7 @@
 #include <aquagpusph/InputOutput/Logger.hpp>
 #include <cmath>
 
+
 extern "C" Aqua::CalcServer::ApolloSim* create_object(
     const std::string name, bool once)
 {
@@ -49,25 +50,32 @@ ApolloSim::~ApolloSim()
 void
 ApolloSim::setup()
 {
+
+    std::stringstream msg;
+	msg << "\t\t" << "Chronosim: Starting the setup" << std::endl;
+    TLogLevel log_level=L_INFO;
+    LOG0(log_level, msg.str());
+
     Tool::setup();
 
     // Get the configuration variables
     auto vars = CalcServer::singleton()->variables();
+
     _pitch = *((float*)vars->get("pitch")->get(true));
     _vel = *((float*)vars->get("u0")->get(true));
-    _cogz = *((float*)vars->get("cogz")->get(true));
-    _pitch *= M_PI / 180.0;
-
+    _cogz = *((float*)vars->get("cogz")->get(true)); 
+    _pitch *= M_PI / 180.0; 
     _sys = chrono_types::make_shared<chrono::ChSystemNSC>();
     _apollo = chrono_types::make_shared<chrono::ChBody>();
+
     _sys->AddBody(_apollo);
     _force = chrono_types::make_shared<chrono::ChForce>();
     _moment = chrono_types::make_shared<chrono::ChForce>();
     _apollo->AddForce(_force);
     _apollo->AddForce(_moment);
-
     _apollo->SetName("Apollo");
     _sys->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -9.81));
+
     // Simulating Space Capsule Water Landing with Explicit Finite Element
     // Method
     // _apollo->SetMass(16200 * LB2KG);
@@ -78,37 +86,45 @@ ApolloSim::setup()
     // ));
     // Pitching Angle on Space Capsule Water Landing Using Smooth Particle
     // Hydrodynamic Method
+    // Set Apollo capsule mass and inertia from the SPH reference setup.
     _apollo->SetMass(3900);
     _apollo->SetInertiaXX(chrono::ChVector3d(5560, 5270, 4180));
-
+    // Configure hydrodynamic force in body frame with world-fixed direction.
     _force->SetMode(chrono::ChForce::FORCE);
     _force->SetFrame(chrono::ChForce::BODY);
     _force->SetAlign(chrono::ChForce::WORLD_DIR);
     _force->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
+    // Configure hydrodynamic moment with the same frame convention.
     _moment->SetMode(chrono::ChForce::TORQUE);
     _moment->SetFrame(chrono::ChForce::BODY);
     _moment->SetAlign(chrono::ChForce::WORLD_DIR);
     _moment->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
-
+    // Place the body at the configured center-of-gravity height.
     _apollo->SetPos(chrono::ChVector3d(0, 0, _cogz));
+    // Apply the initial downward velocity.
     _apollo->SetLinVel(chrono::ChVector3d(0, 0, -_vel));
+
     // On NWU coordinates:
     //    x : Positive moment = positive roll = portside goes up
     //    y : Positive moment = positive pitch = bow goes down
     //    z : Positive moment = positive yaw = bow goes to the portside
+    // Initialize capsule attitude from the configured pitch angle.
     chrono::ChQuaternion<double> R;
     R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, _pitch, 0));
     _apollo->SetRot(R);
 
     _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);
-    _sys->Setup();
 
+    _sys->Setup();
+    // Declare AQUAgpusph variables exchanged during the coupled step.
     setInputDependencies({"dt", "iter_midpoint", "iter_midpoint_max",
                           "Force_p_iset", "Moment_p_iset"});
     setOutputDependencies({"motion_r", "motion_drdt", "motion_ddrddt",
                            "motion_a", "motion_dadt", "motion_ddaddt",
                            "forces_r"});
+
 };
+
 
 void
 setForce(std::shared_ptr<chrono::ChForce> var, vec4 value)
@@ -125,6 +141,7 @@ setForce(std::shared_ptr<chrono::ChForce> var, vec4 value)
     }
 }
 
+
 void
 setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
 {
@@ -136,16 +153,21 @@ setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
     var->set(&v, true);
 }
 
+
+
+
 cl_event
 ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
-{
+{   
     auto vars = CalcServer::singleton()->variables();
+
     // Check whether we are on the midpoint, or at the final iteration
     const unsigned int iter =
         *((unsigned int*)vars->get("iter_midpoint")->get(true));
     const unsigned int iter_max =
         *((unsigned int*)vars->get("iter_midpoint_max")->get(true));
     const bool is_midpoint = iter < iter_max;
+
     // Get the forces from AQUAgpusph
     float dt = *((float*)vars->get("dt")->get(true));
     const vec4 F = *((vec4*)vars->get("Force_p_iset")->get(true));
@@ -153,20 +175,26 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 
     if (iter == 0) {
         // At the beggining of the time step we must copy the results from
-        // the other instance of this solver
+        // the other instance of this solver 
         vec4 data;
         chrono::ChQuaternion<double> R;
+
         data = *((vec4*)vars->get("motion_r")->get(true));
         _apollo->SetPos(chrono::ChVector3d(data.x, data.y, data.z));
+        
         data = *((vec4*)vars->get("motion_drdt")->get(true));
         _apollo->SetLinVel(chrono::ChVector3d(data.x, data.y, data.z));
+        
         data = *((vec4*)vars->get("motion_ddrddt")->get(true));
         _apollo->SetLinAcc(chrono::ChVector3d(data.x, data.y, data.z));
+        
         data = *((vec4*)vars->get("motion_a")->get(true));
         R.SetFromCardanAnglesXYZ(chrono::ChVector3d(data.x, data.y, data.z));
         _apollo->SetRot(R);
+
         data = *((vec4*)vars->get("motion_dadt")->get(true));
         _apollo->SetAngVelLocal(chrono::ChVector3d(data.x, data.y, data.z));
+        
         data = *((vec4*)vars->get("motion_ddaddt")->get(true));
         _apollo->SetAngAccLocal(chrono::ChVector3d(data.x, data.y, data.z));
     }
@@ -175,14 +203,17 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     // This is actually needed also at the final iterator because of the Euler
     // explicit (see below)
     double T = _sys->GetChTime();
+
     chrono::ChState X(_sys->GetNumCoordsPosLevel(), _sys.get());
     chrono::ChStateDelta V(_sys->GetNumCoordsVelLevel(), _sys.get());
     chrono::ChStateDelta A(_sys->GetNumCoordsVelLevel(), _sys.get());
+
     chrono::ChVectorDynamic<> L(_sys->GetNumConstraints());
     const chrono::ChVector3d drdt0 = _apollo->GetLinVel();
     const chrono::ChVector3d ddrddt0 = _apollo->GetLinAcc();
     const chrono::ChVector3d dadt0 = _apollo->GetAngVelLocal();
     const chrono::ChVector3d ddaddt0 = _apollo->GetAngAccLocal();
+
     _sys->StateGather(X, V, T);
     _sys->StateGatherAcceleration(A);
     _sys->StateGatherReactions(L);
@@ -248,7 +279,7 @@ ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         vars->populate("motion_dadt");
         vars->populate("motion_ddaddt");
     }
-    return NULL;
+    return nullptr;
 }
 
 }}  // namespaces
