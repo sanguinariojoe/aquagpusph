@@ -86,6 +86,21 @@ Logger::writeReport(std::string input)
 	}
 }
 
+/** @brief Get a string with the date and time
+ * @return The date and time string
+ * @see https://stackoverflow.com/questions/17223096/outputting-date-and-time-in-c-using-stdchrono
+ */
+std::string
+time_and_date()
+{
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    return ss.str();
+}
+
 void
 Logger::addMessage(TLogLevel level, std::string log, std::string func)
 {
@@ -98,16 +113,20 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 	// Send the info to the log file (if possible)
 	if (_log_file.is_open()) {
 		if (level == L_INFO)
-			_log_file << "<b><font color=\"#000000\">[INFO] " << fname.str()
+			_log_file << time_and_date()
+			          << "<b><font color=\"#000000\">[INFO] " << fname.str()
 			          << log << "</font></b><br>";
 		else if (level == L_WARNING)
-			_log_file << "<b><font color=\"#ff9900\">[WARNING] " << fname.str()
+			_log_file << time_and_date()
+			          << "<b><font color=\"#ff9900\">[WARNING] " << fname.str()
 			          << log << "</font></b><br>";
 		else if (level == L_ERROR)
-			_log_file << "<b><font color=\"#dd0000\">[ERROR] " << fname.str()
+			_log_file << time_and_date()
+			          << "<b><font color=\"#dd0000\">[ERROR] " << fname.str()
 			          << log << "</font></b><br>";
 		else {
-			_log_file << "<font color=\"#000000\">" << fname.str() << log
+			_log_file << time_and_date()
+			          << "<font color=\"#000000\">" << fname.str() << log
 			          << "</font></b>";
 			if (hasSuffix(log, "\n"))
 				_log_file << "<br>";
@@ -123,6 +142,7 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 	std::cout << "[Proc " << mpi_rank << "] ";
 #endif
 
+	std::cout << time_and_date() << " ";
 	// Just in case the Logger has been destroyed
 	if (level == L_INFO)
 		std::cout << "INFO ";
@@ -131,21 +151,6 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 	else if (level == L_ERROR)
 		std::cout << "ERROR ";
 	std::cout << fname.str() << log << std::flush;
-}
-
-/** @brief Get a string with the date and time
- * @return The date and time string
- * @see https://stackoverflow.com/questions/17223096/outputting-date-and-time-in-c-using-stdchrono
- */
-std::string
-time_and_date()
-{
-    auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
-
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-    return ss.str();
 }
 
 void
