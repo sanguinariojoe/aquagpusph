@@ -660,7 +660,7 @@ cl_mem
 CalcServer::createBuffer(size_t size, std::string name)
 {
 	if(size > _device_max_mem_alloc_size) {
-		LOG(L_ERROR, std::string("Failure allocating") + 
+		LOG(L_ERROR, std::string("Failure allocating ") + 
 		             std::to_string(size) +
 		             " bytes for \"" + name + "\"." +
 		             " CL_DEVICE_MAX_MEM_ALLOC_SIZE = " +
@@ -670,22 +670,20 @@ CalcServer::createBuffer(size_t size, std::string name)
 	}
 
 	cl_ulong avail = _device_global_mem_size - _device_global_mem_allocated;
+	cl_mem_flags flags = CL_MEM_READ_WRITE;
 	if(size > avail) {
-		LOG(L_ERROR, std::string("Failure allocating") + 
-		             std::to_string(size) +
-		             " bytes for \"" + name + "\"." +
-		             " There are only " +
-		             std::to_string(avail) +
-		             " bytes of global memory available\n");
-		throw std::runtime_error("OpenCL error");
+		LOG(L_WARNING, std::string("Failure allocating ") + 
+		               std::to_string(size) +
+		               " bytes for \"" + name + "\"." +
+		               " There are only " +
+		               std::to_string(avail) +
+		               " bytes of global memory available\n");
+		LOG0(L_DEBUG, "Trying to allocate on host memory");
+		flags = flags | CL_MEM_ALLOC_HOST_PTR;
 	}
 
 	cl_int err_code;
-	cl_mem mem = clCreateBuffer(context(),
-	                            CL_MEM_READ_WRITE,
-	                            size,
-	                            NULL,
-	                            &err_code);
+	cl_mem mem = clCreateBuffer(context(), flags, size, NULL, &err_code);
 	CHECK_OCL_OR_THROW(err_code,
 		std::string("Failure allocating") + 
 		std::to_string(size) +
@@ -714,7 +712,7 @@ CalcServer::releaseBuffer(cl_mem mem, std::string name)
 		std::string("Failure querying CL_MEM_SIZE for \"") + name + "\".");
 	err_code = clReleaseMemObject(mem);
 	CHECK_OCL_OR_THROW(err_code,
-		std::string("Failure deallocating") + 
+		std::string("Failure deallocating ") + 
 		std::to_string(size) +
 		" bytes on the device memory for \"" + name + "\".");
 
