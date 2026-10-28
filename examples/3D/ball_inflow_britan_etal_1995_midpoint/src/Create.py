@@ -30,16 +30,16 @@
 #
 #########################################################################
 
-import math
-import platform
-import trimesh
-import numpy as np
-import aqua_example_utils as utils
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
+import aqua_example_utils as utils
 
+import numpy as np
+import trimesh
+import platform
+import math
 
 # Constants & conditions
 # ========================
@@ -269,7 +269,6 @@ for i in range(Nx):
             output.write(string)
             n_fluid += 1
 
-
 # Right
 for j in range(Ny):
     y = -hB + 0.5 * dr + j * dr
@@ -309,26 +308,23 @@ print(f"{n_buffer} buffer particles")
 x = domain_max[0] + sep * h
 y = domain_max[1] + sep * h
 z = domain_max[2] + sep * h
-for i in range(n_buffer):
-    # n += 1
-    imove = -255
-    mass = rho2 * dr**2.0
-    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
-        x, y, z,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.0,
-        rho2,
-        0.0,
-        e2,
-        0.0,
-        mass,
-        imove)
-    output.write(string)
-    n_fluid += 1
-
+imove = -255
+mass = rho2 * dr**2.0
+string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}, {}, {}\n").format(
+    x, y, z,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    rho2,
+    0.0,
+    e2,
+    0.0,
+    mass,
+    imove)
+output.write(string * n_buffer)
 output.close()
+n_fluid += n_buffer
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
