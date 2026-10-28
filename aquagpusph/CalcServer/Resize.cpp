@@ -98,23 +98,11 @@ Resize::_solve()
 	// Reallocate
 	cl_mem mem = *(cl_mem*)_var->get();
 	if (mem) {
-		err_code = clReleaseMemObject(mem);
-		CHECK_OCL_OR_THROW(err_code,
-			std::string("Failure releasing ") +
-			std::to_string(_var->size()) +
-			" bytes on the device memory for tool \"" + name() + "\".");
+		C->releaseMemObject(mem, _var->name());
 	}
 	mem = NULL;
 
-	mem = clCreateBuffer(C->context(),
-	                     CL_MEM_READ_WRITE,
-	                     n * typesize,
-	                     NULL,
-	                     &err_code);
-	CHECK_OCL_OR_THROW(err_code,
-		std::string("Failure allocating ") +
-		std::to_string(n * typesize) +
-		" bytes on the device memory for tool \"" + name() + "\".");
+	mem = C->createBuffer(n * typesize, _var->name());
 	_var->set_async(&mem);
 }
 

@@ -59,10 +59,11 @@ Reduction::Reduction(const std::string name,
 
 Reduction::~Reduction()
 {
+	auto C = CalcServer::singleton();
 	for (auto mem : _mems) {
 		if (mem && (mem != _mems.front())) {
 			// The first element can't be removed
-			clReleaseMemObject(mem);
+			C->releaseMemObject(mem, name() + "::_mems");
 		}
 	}
 	_mems.clear();
@@ -387,17 +388,9 @@ Reduction::setupOpenCL()
 		                         _local_work_sizes.at(i));
 		// Build the output memory object
 		cl_mem output = NULL;
-		output = clCreateBuffer(C->context(),
-		                        CL_MEM_READ_WRITE,
-		                        _number_groups.at(i) * data_size,
-		                        NULL,
-		                        &err_code);
-		CHECK_OCL_OR_THROW(
-		    err_code,
-		    std::string("Failure allocating ") +
-		        std::to_string(_number_groups.at(i) * data_size) +
-		        " bytes on the device for tool \"" + name() + "\".");
-		allocatedMemory(_number_groups.at(i) * data_size + allocatedMemory());
+		output = C->createBuffer(
+			_number_groups.at(i) * data_size,
+			name() + "::_mems[" + std::to_string(_mems.size()) + "]");
 		_mems.push_back(output);
 		// Build the kernel
 		kernel = compile_kernel(source.str(), "reduction", flags(local_size));

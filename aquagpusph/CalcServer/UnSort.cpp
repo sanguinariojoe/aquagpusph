@@ -61,8 +61,9 @@ UnSort::UnSort(const std::string name,
 
 UnSort::~UnSort()
 {
+	auto C = CalcServer::singleton();
 	if (_output)
-		clReleaseMemObject(_output);
+		C->releaseMemObject(_output, name() + "::_output");
 	_output = NULL;
 	if (_kernel)
 		clReleaseKernel(_kernel);
@@ -200,21 +201,9 @@ UnSort::setupMem()
 		throw std::runtime_error("Invalid variable length");
 	}
 
-	_output = clCreateBuffer(
-	    C->context(),
-	    CL_MEM_WRITE_ONLY,
+	_output = C->createBuffer(
 	    len_id * InputOutput::Variables::typeToBytes(_var->type()),
-	    NULL,
-	    &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure allocating device memory in the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL allocation error");
-	}
-	allocatedMemory(len_id * InputOutput::Variables::typeToBytes(_var->type()));
+	    name() + "::_output");
 }
 
 void

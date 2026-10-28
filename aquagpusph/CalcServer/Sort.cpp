@@ -72,6 +72,7 @@ Sort::Sort(const std::string tool_name,
 
 Sort::~Sort()
 {
+	auto C = CalcServer::singleton();
 	if (_init_kernel)
 		clReleaseKernel(_init_kernel);
 	if (_start_kernel)
@@ -83,9 +84,9 @@ Sort::~Sort()
 	if (_inv_perms_kernel)
 		clReleaseKernel(_inv_perms_kernel);
 	if (_vals)
-		clReleaseMemObject(_vals);
+		C->releaseMemObject(_vals, name() + "::_vals");
 	if (_permut)
-		clReleaseMemObject(_permut);
+		C->releaseMemObject(_permut, name() + "::_permut");
 }
 
 void
@@ -530,35 +531,18 @@ Sort::setupMems()
 	auto vars = C->variables();
 
 	if (_vals)
-		clReleaseMemObject(_vals);
+		C->releaseMemObject(_vals, name() + "::_vals");
 	_vals = NULL;
 	if (_permut)
-		clReleaseMemObject(_permut);
+		C->releaseMemObject(_vals, name() + "::_permut");
 	_permut = NULL;
 
-	_vals = clCreateBuffer(C->context(),
-	                       CL_MEM_READ_WRITE,
-	                       _n_padded * vars->typeToBytes(_var->type()),
-	                       NULL,
-	                       &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating") +
-	        std::to_string(_n_padded * vars->typeToBytes(_var->type())) +
-	        " bytes for tool \"" + name() + "\".");
-	_permut = clCreateBuffer(C->context(),
-	                         CL_MEM_READ_WRITE,
-	                         _n_padded * vars->typeToBytes(_perms->type()),
-	                         NULL,
-	                         &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating") +
-	        std::to_string(_n_padded * vars->typeToBytes(_perms->type())) +
-	        " bytes for tool \"" + name() + "\".");
-
-	allocatedMemory(_n_padded * vars->typeToBytes(_var->type()) +
-	                _n_padded * vars->typeToBytes(_perms->type()));
+	_vals = C->createBuffer(
+		_n_padded * vars->typeToBytes(_var->type()),
+		name() + "::_vals");
+	_permut = C->createBuffer(
+		_n_padded * vars->typeToBytes(_perms->type()),
+		name() + "::_permut");
 }
 
 void

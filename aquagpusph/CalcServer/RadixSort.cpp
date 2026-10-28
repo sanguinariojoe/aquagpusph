@@ -82,6 +82,7 @@ RadixSort::RadixSort(const std::string tool_name,
 
 RadixSort::~RadixSort()
 {
+	CalcServer* C = CalcServer::singleton();
 	if (_init_kernel)
 		clReleaseKernel(_init_kernel);
 	if (_histograms_kernel)
@@ -95,19 +96,19 @@ RadixSort::~RadixSort()
 	if (_inv_perms_kernel)
 		clReleaseKernel(_inv_perms_kernel);
 	if (_in_vals)
-		clReleaseMemObject(_in_vals);
+		C->releaseMemObject(_in_vals, name() + "::_in_vals");
 	if (_out_vals)
-		clReleaseMemObject(_out_vals);
+		C->releaseMemObject(_out_vals, name() + "::_out_vals");
 	if (_in_permut)
-		clReleaseMemObject(_in_permut);
+		C->releaseMemObject(_in_permut, name() + "::_in_permut");
 	if (_out_permut)
-		clReleaseMemObject(_out_permut);
+		C->releaseMemObject(_out_permut, name() + "::_out_permut");
 	if (_histograms)
-		clReleaseMemObject(_histograms);
+		C->releaseMemObject(_histograms, name() + "::_histograms");
 	if (_global_sums)
-		clReleaseMemObject(_global_sums);
+		C->releaseMemObject(_global_sums, name() + "::_global_sums");
 	if (_temp_mem)
-		clReleaseMemObject(_temp_mem);
+		C->releaseMemObject(_temp_mem, name() + "::_temp_mem");
 }
 
 void
@@ -874,100 +875,48 @@ RadixSort::setupDims()
 void
 RadixSort::setupMems()
 {
-	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 
 	if (_in_vals)
-		clReleaseMemObject(_in_vals);
+		C->releaseMemObject(_in_vals, name() + "::_in_vals");
 	_in_vals = NULL;
 	if (_out_vals)
-		clReleaseMemObject(_out_vals);
+		C->releaseMemObject(_out_vals, name() + "::_out_vals");
 	_out_vals = NULL;
 	if (_in_permut)
-		clReleaseMemObject(_in_permut);
+		C->releaseMemObject(_in_permut, name() + "::_in_permut");
 	_in_permut = NULL;
 	if (_out_permut)
-		clReleaseMemObject(_out_permut);
+		C->releaseMemObject(_out_permut, name() + "::_out_permut");
 	_out_permut = NULL;
 	if (_histograms)
-		clReleaseMemObject(_histograms);
+		C->releaseMemObject(_histograms, name() + "::_histograms");
 	_histograms = NULL;
 	if (_global_sums)
-		clReleaseMemObject(_global_sums);
+		C->releaseMemObject(_global_sums, name() + "::_global_sums");
 	_global_sums = NULL;
 	if (_temp_mem)
-		clReleaseMemObject(_temp_mem);
+		C->releaseMemObject(_temp_mem, name() + "::_temp_mem");
 	_temp_mem = NULL;
-	allocatedMemory(0);
 
 	// Get the memory identifiers
 	size_t type_size = (C->device_addr_bits() == 64) ?
 		sizeof(ulcl) : sizeof(uicl);
 
-	_in_vals = clCreateBuffer(C->context(),
-	                          CL_MEM_READ_WRITE,
-	                          _n_padded * type_size,
-	                          NULL,
-	                          &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating device memory in tool \"") + name() +
-	        "\".");
-	_out_vals = clCreateBuffer(C->context(),
-	                           CL_MEM_READ_WRITE,
-	                           _n_padded * type_size,
-	                           NULL,
-	                           &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating device memory in tool \"") + name() +
-	        "\".");
-	_in_permut = clCreateBuffer(C->context(),
-	                            CL_MEM_READ_WRITE,
-	                            _n_padded * type_size,
-	                            NULL,
-	                            &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating device memory in tool \"") + name() +
-	        "\".");
-	_out_permut = clCreateBuffer(C->context(),
-	                             CL_MEM_READ_WRITE,
-	                             _n_padded * type_size,
-	                             NULL,
-	                             &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating device memory in tool \"") + name() +
-	        "\".");
-	_histograms =
-	    clCreateBuffer(C->context(),
-	                   CL_MEM_READ_WRITE,
-	                   (_radix * _groups * _items) * type_size,
-	                   NULL,
-	                   &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating device memory in tool \"") + name() +
-	        "\".");
-	_global_sums = clCreateBuffer(C->context(),
-	                              CL_MEM_READ_WRITE,
-	                              _histo_split * type_size,
-	                              NULL,
-	                              &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating device memory in tool \"") + name() +
-	        "\".");
-	_temp_mem = clCreateBuffer(
-	    C->context(), CL_MEM_READ_WRITE, sizeof(unsigned int), NULL, &err_code);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure allocating device memory in tool \"") + name() +
-	        "\".");
-
-	allocatedMemory((4 * _n_padded + (_radix * _groups * _items) +
-	                 _histo_split + 1) * type_size);
+	_in_vals = C->createBuffer(_n_padded * type_size,
+	                           name() + "::_in_vals");
+	_out_vals = C->createBuffer(_n_padded * type_size,
+	                            name() + "::_out_vals");
+	_in_permut = C->createBuffer(_n_padded * type_size,
+	                             name() + "::_in_permut");
+	_out_permut = C->createBuffer(_n_padded * type_size,
+	                              name() + "::_out_permut");
+	_histograms = C->createBuffer((_radix * _groups * _items) * type_size,
+	                              name() + "::_histograms");
+	_global_sums = C->createBuffer(_histo_split * type_size,
+	                               name() + "::_global_sums");
+	_temp_mem = C->createBuffer(sizeof(unsigned int),
+	                            name() + "::_temp_mem");
 }
 
 template<typename T>

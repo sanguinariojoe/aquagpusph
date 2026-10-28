@@ -341,11 +341,8 @@ MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
 	// the sorting tool
 	_fields_sorted.back()->reallocatable(true);
 	inner_mem = *(cl_mem*)_fields_sorted.back()->get();
-	err_code = clReleaseMemObject(inner_mem);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure Releasing the inner memory object of \"") +
-	        _fields_sorted.back()->name() + "\" in tool \"" + name() + "\".");
+	C->releaseMemObject(
+		inner_mem, name() + "::" + _fields_sorted.back()->name());
 
 	// Create the sorter
 	var_name = "__" + field->name() + "->Radix-Sort";

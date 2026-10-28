@@ -302,6 +302,42 @@ class DECLDIR CalcServer
 	                        cl_uint arg_index,
 	                        const T arg_value);
 
+	/** @brief wrapper to clCreateBuffer that makes some extra checks before
+	 * allocating memory
+	 * 
+	 * This function tries to minimize the deferred (and thus hard to track
+	 * down) memory allocation errors
+	 *
+	 * On top of that, this function is keeping track on the allocated memory,
+	 * and can print that vs. the total available global memory
+	 *
+	 * @param size The buffer memory size
+	 * @param name Some identifier in case of errors
+	 * @return The memory object
+	 */
+	cl_mem createBuffer(size_t size, std::string name="--unnamed--");
+
+	/** @brief wrapper to clReleaseMemObject
+	 * 
+	 * This is just helping ::createBuffer() to keep track on the allocated
+	 * memory
+	 *
+	 * @param mem The buffer memory object
+	 * @param name Some identifier in case of errors
+	 * @return The memory object
+	 *
+	 * @{
+	 */
+	void releaseBuffer(cl_mem mem, std::string name="--unnamed--");
+
+	inline void releaseMemObject(cl_mem mem, std::string name="--unnamed--")
+	{
+		releaseBuffer(mem, name);
+	}
+	/**
+	 * @}
+	 */
+
 	enum cmd_queue
 	{
 		cmd_queue_current,
@@ -478,6 +514,12 @@ class DECLDIR CalcServer
 	cl_uint _npwgs;
 	/// The compilation flags to be considered when calling clBuildProgram()
 	std::string _device_compile_flags;
+	/// The device maximum contiguous allocation size
+	cl_ulong _device_max_mem_alloc_size;
+	/// The device total global memory size
+	cl_ulong _device_global_mem_size;
+	/// A track on the total allocated memory
+	cl_ulong _device_global_mem_allocated;
 	/** @brief Flag to let the implementation know if it is the NVIDIA's
 	 * platform
 	 *

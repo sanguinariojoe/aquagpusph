@@ -55,13 +55,20 @@ Scan::Scan(const std::string name,
 
 Scan::~Scan()
 {
+	CalcServer* C = CalcServer::singleton();
 	for (unsigned int i = 0; i < _input.size(); i++) {
 		if (i != 0) {
 			// The first input data does not belongs to us
-			clReleaseMemObject(_input.at(i));
+			C->releaseMemObject(
+				_input.at(i),
+				name() + "::" + "_input[" + std::to_string(i) + "]");
 		}
-		clReleaseMemObject(_partial.at(i));
-		clReleaseMemObject(_flags.at(i));
+		C->releaseMemObject(
+			_partial.at(i),
+			name() + "::" + "_partial[" + std::to_string(i) + "]");
+		C->releaseMemObject(
+			_flags.at(i),
+			name() + "::" + "_flags[" + std::to_string(i) + "]");
 	}
 	if (_init)
 		clReleaseKernel(_init);
@@ -210,29 +217,14 @@ Scan::setupOpenCL()
 
 	// Create the inputs of the first stage
 	_input.push_back(*(cl_mem*)_var->get());
-	cl_mem partial = clCreateBuffer(C->context(),
-	                                CL_MEM_READ_WRITE,
-	                                _n * sizeof(cl_int),
-	                                NULL,
-	                                &err_code);
-	CHECK_OCL_OR_THROW(
-		err_code,
-		std::string("Failure allocating ") +
-			std::to_string(_n * sizeof(cl_int)) +
-			" bytes on the device for partials on  tool \"" + name() + "\".");
+	cl_mem partial = C->createBuffer(
+		_n * sizeof(cl_int),
+		name() + "::_partial[" + std::to_string(_partial.size()) + "]");
 	_partial.push_back(partial);
-	cl_mem flags = clCreateBuffer(C->context(),
-	                              CL_MEM_READ_WRITE,
-	                              _n * sizeof(cl_int),
-	                              NULL,
-	                              &err_code);
-	CHECK_OCL_OR_THROW(
-		err_code,
-		std::string("Failure allocating ") +
-			std::to_string(_n * sizeof(cl_int)) +
-			" bytes on the device for flags on tool \"" + name() + "\".");
+	cl_mem flags = C->createBuffer(
+		_n * sizeof(cl_int),
+		name() + "::_flags[" + std::to_string(_flags.size()) + "]");
 	_flags.push_back(flags);
-	allocatedMemory(2 * _n * sizeof(cl_int));
 	_k.push_back(_n);
 
 	// Setup the subsequent stages
@@ -244,37 +236,15 @@ Scan::setupOpenCL()
 	LOG(L_DEBUG, msg.str());
 	while (k > 1) {
 		cl_mem input_sum, partial_sum, flags_sum;
-		input_sum = clCreateBuffer(C->context(),
-		                           CL_MEM_READ_WRITE,
-		                           k * data_size,
-		                           NULL,
-		                           &err_code);
-		CHECK_OCL_OR_THROW(
-			err_code,
-			std::string("Failure allocating ") +
-				std::to_string(k * data_size) +
-				" bytes on the device for input_sum on  tool \"" + name() + "\".");
-		partial_sum = clCreateBuffer(C->context(),
-		                             CL_MEM_READ_WRITE,
-		                             k * sizeof(cl_int),
-		                             NULL,
-		                             &err_code);
-		CHECK_OCL_OR_THROW(
-			err_code,
-			std::string("Failure allocating ") +
-				std::to_string(k * sizeof(cl_int)) +
-				" bytes on the device for partials_sum on  tool \"" + name() + "\".");
-		flags_sum = clCreateBuffer(C->context(),
-		                           CL_MEM_READ_WRITE,
-		                           k * sizeof(cl_int),
-		                           NULL,
-		                           &err_code);
-		CHECK_OCL_OR_THROW(
-			err_code,
-			std::string("Failure allocating ") +
-				std::to_string(k * sizeof(cl_int)) +
-				" bytes on the device for flags_sum on tool \"" + name() + "\".");
-		allocatedMemory(k * (data_size + 2 * sizeof(cl_int)));
+		input_sum = C->createBuffer(
+			k * data_size,
+			name() + "::_input[" + std::to_string(_input.size()) + "]");
+		partial_sum = C->createBuffer(
+			k * sizeof(cl_int),
+			name() + "::_partial[" + std::to_string(_partial.size()) + "]");
+		flags_sum = C->createBuffer(
+			k * sizeof(cl_int),
+			name() + "::_flags[" + std::to_string(_flags.size()) + "]");
 
 		_input.push_back(input_sum);
 		_partial.push_back(partial_sum);

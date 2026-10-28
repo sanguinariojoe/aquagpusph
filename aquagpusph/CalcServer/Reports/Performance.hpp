@@ -35,7 +35,6 @@ namespace Reports {
  * @brief On screen performance output.
  *
  * Performance will print the following data:
- *    -# Allocated memory in the computational device
  *    -# The average CPU time consumend of each tool (GPU time can be taken
  *    with the profiling tools of each vendor)
  *
@@ -77,11 +76,6 @@ class Performance : public Aqua::CalcServer::Reports::Report
 	void print();
 
   protected:
-	/** @brief Get the allocated memory.
-	 * @return Allocated memory in the computational device.
-	 */
-	size_t computeAllocatedMemory();
-
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution
 	 * @return OpenCL event to be waited before accessing the dependencies

@@ -99,10 +99,6 @@ Performance::print()
 	std::stringstream data;
 	auto C = CalcServer::singleton();
 
-	size_t allocated_MB = computeAllocatedMemory() / (1024 * 1024);
-	data << "Performance:" << std::endl
-	     << "Memory=" << std::setw(18) << allocated_MB << "MB" << std::endl;
-
 	// Add the tools time elapsed
 	auto snapshots = ((ProfilingInfo*)C)->get();
 	auto snapshot = snapshots.front();
@@ -183,25 +179,6 @@ Performance::print()
 	}
 
 	setUserEventStatus(CL_COMPLETE);
-}
-
-size_t
-Performance::computeAllocatedMemory()
-{
-	size_t allocated_mem = 0;
-	auto C = CalcServer::singleton();
-
-	// Get the allocated memory in the variables
-	InputOutput::Variables* vars = C->variables();
-	allocated_mem += vars->allocatedMemory();
-
-	// Gwet the additionally allocated memory in the tools
-	auto tools = C->tools();
-	for (auto tool : tools) {
-		allocated_mem += tool->allocatedMemory();
-	}
-
-	return allocated_mem;
 }
 
 /** @brief Callback called when all the commands prior to

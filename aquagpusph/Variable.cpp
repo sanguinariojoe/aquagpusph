@@ -625,6 +625,7 @@ ArrayVariable::ArrayVariable(const std::string varname,
 
 ArrayVariable::~ArrayVariable()
 {
+	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
 	for (auto object : _objects) {
 		if (object)
 			Py_DECREF(object);
@@ -636,7 +637,7 @@ ArrayVariable::~ArrayVariable()
 	}
 	_data.clear();
 	if (_value)
-		clReleaseMemObject(_value);
+		C->releaseMemObject(_value, name());
 	_value = NULL;
 }
 
@@ -1850,15 +1851,7 @@ Variables::registerClMem(const std::string name,
 	ArrayVariable* var = new ArrayVariable(name, type + '*');
 
 	// Allocate memory on device
-	cl_int status;
-	cl_mem mem;
-	mem = clCreateBuffer(
-	    C->context(), CL_MEM_READ_WRITE, n * typesize, NULL, &status);
-	if (status != CL_SUCCESS) {
-		LOG(L_ERROR, "Allocation failure.\n");
-		Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
-		throw std::bad_alloc();
-	}
+	cl_mem mem = C->createBuffer(n * typesize, name);
 	var->set(&mem);
 
 	_vars.push_back(var);

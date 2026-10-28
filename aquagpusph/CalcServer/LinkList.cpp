@@ -251,24 +251,11 @@ LinkList::allocate()
 	// We have no alternative, we must sync here
 	cl_mem mem = *(cl_mem*)ihoc_var->get();
 	ihoc_var->sync();
-	if (mem) {
-		err_code = clReleaseMemObject(mem);
-		CHECK_OCL_OR_THROW(err_code,
-			std::string("Failure releasing ") +
-			std::to_string(ihoc_var->size()) +
-			" bytes on the device memory for tool \"" + name() + "\".");
-	}
+	if (mem)
+		C->releaseMemObject(mem, ihoc_var->name());
 	mem = NULL;
 
-	mem = clCreateBuffer(C->context(),
-	                     CL_MEM_READ_WRITE,
-	                     _n_cells.w * tsize,
-	                     NULL,
-	                     &err_code);
-	CHECK_OCL_OR_THROW(err_code,
-		std::string("Failure allocating ") +
-		std::to_string(_n_cells.w * tsize) +
-		" bytes on the device memory for tool \"" + name() + "\".");
+	mem = C->createBuffer(_n_cells.w * tsize, ihoc_var->name());
 	ihoc_var->set_async(&mem);
 }
 

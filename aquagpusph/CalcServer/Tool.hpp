@@ -226,11 +226,6 @@ class DECLDIR Tool
 	 */
 	inline void prev_tool(Tool* tool) { _prev_tool = tool; }
 
-	/** Get the allocated memory for this tool.
-	 * @return allocated memory by this tool.
-	 */
-	inline size_t allocatedMemory() const { return _allocated_memory; }
-
 	/** Get the number of times that this tool has been called.
 	 * @return Number of times this tool has been called.
 	 */
@@ -346,11 +341,6 @@ class DECLDIR Tool
 	 * the pipeline
 	 */
 	void next_tool(Tool* tool) { _next_tool = tool; }
-
-	/** Set the allocated memory for this tool.
-	 * @param mem_size allocated memory by this tool.
-	 */
-	void allocatedMemory(size_t mem_size) { _allocated_memory = mem_size; }
 
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution
@@ -537,9 +527,6 @@ class DECLDIR Tool
 
 	/// Previous tool in the execution pipeline
 	Tool* _prev_tool;
-
-	/// Total auxiliar memory allocated in the device
-	size_t _allocated_memory;
 
 	/// Times that this tool has been called
 	size_t _n_iters;

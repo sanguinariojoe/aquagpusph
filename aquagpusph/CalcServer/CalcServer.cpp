@@ -549,11 +549,6 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 		}
 	}
 
-	std::ostringstream msg;
-	msg << "Allocated memory = " << _vars.allocatedMemory() << " bytes"
-	    << std::endl;
-	LOG(L_INFO, msg.str());
-
 	setup();
 
 	signal(SIGINT, sigint_handler);
@@ -572,6 +567,7 @@ CalcServer::~CalcServer()
 		if (!__phony_mems[i])
 			continue;
 		clReleaseMemObject(__phony_mems[i]);
+		_device_global_mem_allocated -= sizeof(cl_int);
 	}
 
 	delete[] _current_tool_name;
@@ -658,6 +654,75 @@ CalcServer::setKernelSizeArg(cl_kernel kernel,
 	}
 	uicl val = narrow_cast<uicl>(arg_value);
 	return clSetKernelArg(kernel, arg_index, sizeof(uicl), &val);
+}
+
+cl_mem
+CalcServer::createBuffer(size_t size, std::string name)
+{
+	if(size > _device_max_mem_alloc_size) {
+		LOG(L_ERROR, std::string("Failure allocating") + 
+		             std::to_string(size) +
+		             " bytes for \"" + name + "\"." +
+		             " CL_DEVICE_MAX_MEM_ALLOC_SIZE = " +
+		             std::to_string(_device_max_mem_alloc_size) +
+		             "\n");
+		throw std::runtime_error("OpenCL error");
+	}
+
+	cl_ulong avail = _device_global_mem_size - _device_global_mem_allocated;
+	if(size > avail) {
+		LOG(L_ERROR, std::string("Failure allocating") + 
+		             std::to_string(size) +
+		             " bytes for \"" + name + "\"." +
+		             " There are only " +
+		             std::to_string(avail) +
+		             " bytes of global memory available\n");
+		throw std::runtime_error("OpenCL error");
+	}
+
+	cl_int err_code;
+	cl_mem mem = clCreateBuffer(context(),
+	                            CL_MEM_READ_WRITE,
+	                            size,
+	                            NULL,
+	                            &err_code);
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure allocating") + 
+		std::to_string(size) +
+		" bytes on the device memory for \"" + name + "\".");
+
+	_device_global_mem_allocated += size;
+	LOG0(L_DEBUG, std::string("Allocated \"") + name + "\": " +
+	              std::to_string(size) + " (" +
+	              std::to_string(_device_global_mem_allocated) + " / " +
+	              std::to_string(_device_global_mem_size) + ")\n");
+
+	return mem;
+}
+
+void
+CalcServer::releaseBuffer(cl_mem mem, std::string name)
+{
+	cl_int err_code;
+	size_t size;
+	err_code = clGetMemObjectInfo(mem,
+	                              CL_MEM_SIZE,
+	                              sizeof(size_t),
+	                              &size,
+	                              NULL);
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure querying CL_MEM_SIZE for \"") + name + "\".");
+	err_code = clReleaseMemObject(mem);
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure deallocating") + 
+		std::to_string(size) +
+		" bytes on the device memory for \"" + name + "\".");
+
+	_device_global_mem_allocated -= size;
+	LOG0(L_DEBUG, std::string("Deallocated \"") + name + "\": " +
+	              std::to_string(size) + " (" +
+	              std::to_string(_device_global_mem_allocated) + " / " +
+	              std::to_string(_device_global_mem_size) + ")\n");
 }
 
 /** @brief Create an OpenCL command queue
@@ -912,6 +977,7 @@ CalcServer::setupOpenCL()
 			                                 &err_code);
 			CHECK_OCL_OR_THROW(err_code,
 			                   "Failure creating a NVIDIA's phony buffer");
+			_device_global_mem_allocated += sizeof(cl_int);
 		}
 	}
 
@@ -1418,6 +1484,21 @@ CalcServer::setupDevices()
 		_sim_data.settings.devices.at(rank).compilation_flags;
 	LOG(L_INFO, std::string("Compilation flags = ") + _device_compile_flags +
 	            "\n");
+	err_code = clGetDeviceInfo(_device,
+	                           CL_DEVICE_MAX_MEM_ALLOC_SIZE,
+	                           sizeof(cl_ulong),
+	                           &_device_max_mem_alloc_size,
+	                           NULL);
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure querying CL_DEVICE_MAX_MEM_ALLOC_SIZE\n");
+	err_code = clGetDeviceInfo(_device,
+	                           CL_DEVICE_GLOBAL_MEM_SIZE,
+	                           sizeof(cl_ulong),
+	                           &_device_global_mem_size,
+	                           NULL);
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure querying CL_DEVICE_GLOBAL_MEM_SIZE\n");
+	_device_global_mem_allocated = 0;
 
 	// Create the command queues
 	auto queue = create_command_queue(_context, _device, &err_code);
