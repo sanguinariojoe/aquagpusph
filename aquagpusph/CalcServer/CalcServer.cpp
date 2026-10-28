@@ -670,20 +670,22 @@ CalcServer::createBuffer(size_t size, std::string name)
 	}
 
 	cl_ulong avail = _device_global_mem_size - _device_global_mem_allocated;
-	cl_mem_flags flags = CL_MEM_READ_WRITE;
 	if(size > avail) {
-		LOG(L_WARNING, std::string("Failure allocating ") + 
-		               std::to_string(size) +
-		               " bytes for \"" + name + "\"." +
-		               " There are only " +
-		               std::to_string(avail) +
-		               " bytes of global memory available\n");
-		LOG0(L_DEBUG, "Trying to allocate on host memory");
-		flags = flags | CL_MEM_ALLOC_HOST_PTR;
+		LOG(L_ERROR, std::string("Failure allocating ") + 
+		             std::to_string(size) +
+		             " bytes for \"" + name + "\"." +
+		             " There are only " +
+		             std::to_string(avail) +
+		             " bytes of global memory available\n");
+		throw std::runtime_error("OpenCL error");
 	}
 
 	cl_int err_code;
-	cl_mem mem = clCreateBuffer(context(), flags, size, NULL, &err_code);
+	cl_mem mem = clCreateBuffer(context(),
+	                            CL_MEM_READ_WRITE,
+	                            size,
+	                            NULL,
+	                            &err_code);
 	CHECK_OCL_OR_THROW(err_code,
 		std::string("Failure allocating") + 
 		std::to_string(size) +
