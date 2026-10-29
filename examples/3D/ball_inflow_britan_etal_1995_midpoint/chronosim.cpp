@@ -30,6 +30,14 @@
 #include <filesystem>
 #include <stdexcept>
 
+#if CH_VERSION < 0x00100000
+#define CH_TIMESTEPPER chrono::ChTimestepper::Type::EULER_EXPLICIT
+#define CH_STATE_FLAGS true
+#else
+#define CH_TIMESTEPPER chrono::ChTimestepper::Type::EULER_EXPLICIT_II
+#define CH_STATE_FLAGS chrono::UpdateFlags::UPDATE_ALL
+#endif
+
 /** @brief Function called by AQUAgpusph to retrieve a Aqua::CalcServer::Tool
  * derived object that will be treated as any other AQUAgpusoh tool
  * @return BritanSim object
@@ -90,7 +98,7 @@ BritanSim::setup()
     _ball->SetPos(chrono::ChVector3d(0, 0, 0));
     _ball->SetLinVel(chrono::ChVector3d(0, 0, 0));
 
-    _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);
+    _sys->SetTimestepperType(CH_TIMESTEPPER);
     _sys->Setup();
 
     setInputDependencies({"dt", "iter_midpoint", "iter_midpoint_max",
@@ -201,7 +209,7 @@ BritanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         _sys->SetChTime(T);
         _sys->StateScatterReactions(L);
         _sys->StateScatterAcceleration(A);
-        _sys->StateScatter(X, V, T, true);
+        _sys->StateScatter(X, V, T, CH_STATE_FLAGS);
         setForce(_force, F);
         setForce(_moment, M);
         _sys->DoStepDynamics(dt);
@@ -226,7 +234,7 @@ BritanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
         _sys->SetChTime(T);
         _sys->StateScatterReactions(L);
         _sys->StateScatterAcceleration(A);
-        _sys->StateScatter(X, V, T, true);
+        _sys->StateScatter(X, V, T, CH_STATE_FLAGS);
         setVec(vars->get("motion_drdt"), 0.5 * (drdt + drdt0));
         setVec(vars->get("motion_ddrddt"), 0.5 * (ddrddt + ddrddt0));
         setVec(vars->get("motion_dadt"), 0.5 * (dadt + dadt0));
